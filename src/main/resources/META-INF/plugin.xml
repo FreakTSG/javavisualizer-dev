@@ -1,0 +1,44 @@
+<idea-plugin>
+  <id>com.aegamesi.java_visualizer.plugin</id>
+  <name>Java Visualizer</name>
+  <vendor email="eli.lipsitz@gmail.com" url="https://github.com/elipsitz">Eli Lipsitz</vendor>
+
+  <description><![CDATA[
+      A tool to visualize the call stack and objects on the heap (as a box and
+      pointer diagram) while debugging Java applications.
+    ]]></description>
+
+  <change-notes><![CDATA[
+      Minor update to stop using deprecated API.
+    ]]>
+  </change-notes>
+
+  <idea-version since-build="193.0"/>
+
+  <depends>com.intellij.modules.java</depends>
+
+  <projectListeners>
+    <listener class="com.aegamesi.java_visualizer.plugin.JavaVisualizerListener"
+              topic="com.intellij.xdebugger.XDebuggerManagerListener"/>
+  </projectListeners>
+
+  <actions>
+    <group id="JavaVisualizer.VisualizerToolbar" popup="false">
+      <action
+              id="JavaVisualizer.ZoomInAction"
+              class="com.aegamesi.java_visualizer.plugin.ZoomInAction"
+              text="Zoom In"
+              description="Zoom in visualizer"
+              icon="/icons/magnify-plus.svg"
+      />
+      <action
+              id="JavaVisualizer.ZoomOutAction"
+              class="com.aegamesi.java_visualizer.plugin.ZoomOutAction"
+              text="Zoom Out"
+              description="Zoom out visualizer"
+              icon="/icons/magnify-minus.svg"
+      />
+    </group>
+  </actions>
+
+</idea-plugin>
