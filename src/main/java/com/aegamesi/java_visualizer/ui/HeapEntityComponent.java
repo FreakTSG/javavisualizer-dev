@@ -1,6 +1,7 @@
 package com.aegamesi.java_visualizer.ui;
 
 import com.aegamesi.java_visualizer.model.*;
+import wrapper_classes.NodeWrapper;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -30,11 +31,16 @@ class HeapEntityComponent extends JPanel {
 		add(topLabel, BorderLayout.NORTH);
 
 		JPanel mainPanel = null;
-		if (entity instanceof HeapObject) {
+		if (entity instanceof IDSLinkedList) {
+			// Check and cast to the specific type of IDSLinkedList you expect
+			IDSLinkedList<NodeWrapper> linkedList = safelyCastToIDSLinkedList(entity);
+			if (linkedList != null) {
+				mainPanel = new PanelLinkedList<>(linkedList);
+			}
+		}
+		else if (entity instanceof HeapObject) {
 			mainPanel = new PanelObject((HeapObject) entity);
-		} else if (entity instanceof IDSLinkedList) {
-			mainPanel = new PanelLinkedList((IDSLinkedList) entity);
-		} else if (entity instanceof HeapList) {
+		}   else if (entity instanceof HeapList) {
 			mainPanel = new PanelList((HeapList) entity);
 		} else if (entity instanceof HeapMap) {
 			mainPanel = new PanelMap((HeapMap) entity);
@@ -43,6 +49,16 @@ class HeapEntityComponent extends JPanel {
 		if (mainPanel != null) {
 			add(mainPanel, BorderLayout.WEST);
 		}
+	}
+
+	private IDSLinkedList<NodeWrapper> safelyCastToIDSLinkedList(HeapEntity entity) {
+		if (entity instanceof IDSLinkedList) {
+			// Suppress unchecked cast warning, since we've checked the instance type
+			@SuppressWarnings("unchecked")
+			IDSLinkedList<NodeWrapper> linkedList = (IDSLinkedList<NodeWrapper>) entity;
+			return linkedList;
+		}
+		return null;
 	}
 
 	HeapEntity getEntity() {

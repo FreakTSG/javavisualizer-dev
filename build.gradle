@@ -17,6 +17,13 @@ dependencies {
     compile group: 'org.json', name: 'json', version: '20180813'
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 }
+apply plugin: 'application'
+mainClassName = 'com.aegamesi.java_visualizer.CanvasTest'
+
+task runCanvasTest(type: JavaExec) {
+    main = mainClassName
+    classpath = sourceSets.main.runtimeClasspath
+}
 
 intellij {
     version '2019.3.5'
