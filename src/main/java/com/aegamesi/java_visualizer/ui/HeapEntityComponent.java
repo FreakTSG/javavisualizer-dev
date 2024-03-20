@@ -1,8 +1,6 @@
 package com.aegamesi.java_visualizer.ui;
 
 import com.aegamesi.java_visualizer.model.*;
-import wrapper_classes.NodeWrapper;
-
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
