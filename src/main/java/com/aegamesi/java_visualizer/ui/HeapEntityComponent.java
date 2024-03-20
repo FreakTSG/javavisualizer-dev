@@ -31,14 +31,8 @@ class HeapEntityComponent extends JPanel {
 		add(topLabel, BorderLayout.NORTH);
 
 		JPanel mainPanel = null;
-		if (entity instanceof IDSLinkedList) {
-			// Check and cast to the specific type of IDSLinkedList you expect
-			IDSLinkedList<NodeWrapper> linkedList = safelyCastToIDSLinkedList(entity);
-			if (linkedList != null) {
-				mainPanel = new PanelLinkedList<>(linkedList);
-			}
-		}
-		else if (entity instanceof HeapObject) {
+
+		if (entity instanceof HeapObject) {
 			mainPanel = new PanelObject((HeapObject) entity);
 		}   else if (entity instanceof HeapList) {
 			mainPanel = new PanelList((HeapList) entity);
@@ -51,15 +45,7 @@ class HeapEntityComponent extends JPanel {
 		}
 	}
 
-	private IDSLinkedList<NodeWrapper> safelyCastToIDSLinkedList(HeapEntity entity) {
-		if (entity instanceof IDSLinkedList) {
-			// Suppress unchecked cast warning, since we've checked the instance type
-			@SuppressWarnings("unchecked")
-			IDSLinkedList<NodeWrapper> linkedList = (IDSLinkedList<NodeWrapper>) entity;
-			return linkedList;
-		}
-		return null;
-	}
+
 
 	HeapEntity getEntity() {
 		return entity;

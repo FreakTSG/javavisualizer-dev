@@ -1,4 +1,4 @@
-package com.aegamesi.java_visualizer.ui;
+package com.aegamesi.java_visualizer.ui.operators;
 
 import ui.Canvas;
 import ui.operators.State;
