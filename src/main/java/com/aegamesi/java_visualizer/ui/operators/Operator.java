@@ -1,9 +1,8 @@
 package com.aegamesi.java_visualizer.ui.operators;
 
-import ui.Canvas;
-import ui.operators.State;
 
 import javax.swing.event.MouseInputListener;
+import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
 
