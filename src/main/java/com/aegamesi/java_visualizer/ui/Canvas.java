@@ -1,6 +1,5 @@
 package com.aegamesi.java_visualizer.ui;
 
-import ui.operators.Operator;
 
 import javax.swing.*;
 import javax.swing.event.MouseInputListener;

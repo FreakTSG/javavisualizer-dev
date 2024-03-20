@@ -1,7 +1,6 @@
-package com.aegamesi.java_visualizer.ui;
+package com.aegamesi.java_visualizer.ui.operators;
 
 import com.aegamesi.java_visualizer.ui.Canvas;
-import com.aegamesi.java_visualizer.ui.operators.State;
 
 import javax.swing.event.MouseInputListener;
 import java.awt.event.MouseEvent;
