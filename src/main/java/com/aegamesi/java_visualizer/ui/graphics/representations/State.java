@@ -1,4 +1,4 @@
-package com.aegamesi.java_visualizer.ui.operators;
+package com.aegamesi.java_visualizer.ui.graphics.representations;
 
 import javax.swing.event.MouseInputListener;
 import java.awt.*;

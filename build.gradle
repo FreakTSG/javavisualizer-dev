@@ -1,20 +1,22 @@
 plugins {
     id 'java'
-    id 'org.jetbrains.intellij' version '0.4.1'
+    id 'org.jetbrains.intellij' version '1.16.0'
+    id 'groovy'
 }
 
 group 'com.aegamesi'
 version '2.2.1'
 
-sourceCompatibility = 1.8
+sourceCompatibility = 16
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
-    compile group: 'org.json', name: 'json', version: '20180813'
+    testImplementation group: 'junit', name: 'junit', version: '4.12'
+    implementation group: 'org.json', name: 'json', version: '20180813','org.codehaus.groovy:groovy-all:3.0.19'
+
 }
 apply plugin: 'application'
 mainClassName = 'com.aegamesi.java_visualizer.CanvasTest'
@@ -25,11 +27,15 @@ task runCanvasTest(type: JavaExec) {
 }
 
 intellij {
-    version '2019.3.5'
-    sandboxDirectory = "${System.properties['user.home']}/Library/Caches/IntelliJIdea2019.3/plugins-sandbox/"
-    updateSinceUntilBuild false
-    plugins = ['java']
+    intellij.version = "2022.1.1"
+    plugins = ["com.intellij.java"]
 }
 
 patchPluginXml {
+    sinceBuild = "221"
+    untilBuild = "251.*"
+}
+targetCompatibility = JavaVersion.VERSION_16
+tasks.buildSearchableOptions {
+    enabled = false
 }

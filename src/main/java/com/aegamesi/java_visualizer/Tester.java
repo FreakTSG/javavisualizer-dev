@@ -1,15 +1,12 @@
 package com.aegamesi.java_visualizer;
 
 import com.aegamesi.java_visualizer.model.ExecutionTrace;
-import com.aegamesi.java_visualizer.ui.Canvas;
 import com.aegamesi.java_visualizer.ui.VisualizationPanel;
 
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import javax.swing.JFrame;
-import com.aegamesi.java_visualizer.ui.Canvas;
 
 public class Tester {
 	public static void main(String[] args) throws Exception {

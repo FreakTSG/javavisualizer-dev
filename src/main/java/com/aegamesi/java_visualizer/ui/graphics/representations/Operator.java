@@ -1,23 +1,24 @@
-package com.aegamesi.java_visualizer.ui.operators;
+package com.aegamesi.java_visualizer.ui.graphics.representations;
 
+
+import com.aegamesi.java_visualizer.ui.MyCanvas;
 
 import javax.swing.event.MouseInputListener;
-import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.HashMap;
 
 abstract public class Operator implements MouseInputListener {
-    protected static Canvas canvas;
+    protected static MyCanvas canvas;
 
     protected HashMap<Integer, State> states;
     protected State currentState;
 
-    public Operator(Canvas canvas) {
+    public Operator(MyCanvas canvas) {
         this.canvas = canvas;
         states = new HashMap<>();
     }
 
-    public static Canvas getCanvas() {
+    public static MyCanvas getCanvas() {
         return canvas;
     }
 
