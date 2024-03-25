@@ -12,12 +12,16 @@ import javax.swing.*;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-public class MyCanvas extends JPanel {
+public class MyCanvas extends JPanel implements MouseListener, MouseMotionListener {
+    private RepresentationWithInConnectors draggedRepresentation = null;
+    private Point dragOffset = null;
 
     public static IDSToolWindow IDSToolWindow;
     private static final int i = 0;
@@ -39,6 +43,8 @@ public class MyCanvas extends JPanel {
         representationWithInConnectorsByOwner = new HashMap<>();
 //        wrapperById = new HashMap<>();
         connectionByOutConnector = new HashMap<>();
+        addMouseListener(this);
+        addMouseMotionListener(this);
 
         setFocusable(true);
 
@@ -206,6 +212,31 @@ public class MyCanvas extends JPanel {
         doSpatialDistribution();
         repaint();
     }
+    @Override
+    public void mousePressed(MouseEvent e) {
+        for (RepresentationWithInConnectors rep : representationWithInConnectorsByOwner.values()) {
+            if (rep.getContainer().contains(e.getPoint())) {
+                draggedRepresentation = rep;
+                Point repPosition = rep.getPosition();
+                dragOffset = new Point(e.getX() - repPosition.x, e.getY() - repPosition.y);
+                break;
+            }
+        }
+    }
+
+    @Override
+    public void mouseDragged(MouseEvent e) {
+        if (draggedRepresentation != null) {
+            draggedRepresentation.setPosition(new Point(e.getX() - dragOffset.x, e.getY() - dragOffset.y));
+            repaint();
+        }
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+        draggedRepresentation = null;
+        dragOffset = null;
+    }
     public void updateMousePosition(MouseEvent e) {
         mousePosition.setLocation(e.getX(), e.getY());
         repaint();
@@ -278,6 +309,11 @@ public class MyCanvas extends JPanel {
     public boolean isCompactMode() {
         return compactMode;
     }
+
+    @Override public void mouseClicked(MouseEvent e) {}
+    @Override public void mouseEntered(MouseEvent e) {}
+    @Override public void mouseExited(MouseEvent e) {}
+    @Override public void mouseMoved(MouseEvent e) {}
 
 
 }

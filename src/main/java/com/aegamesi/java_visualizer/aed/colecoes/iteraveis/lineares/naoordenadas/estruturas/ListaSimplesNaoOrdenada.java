@@ -219,7 +219,7 @@ public class ListaSimplesNaoOrdenada<T> implements ColecaoIteravelLinearNaoOrden
 
     public class Iterador implements IteradorIteravel<T> {
         protected No corrente;
-
+        protected int currentIndex = 0;
         protected Iterador() {
             reiniciar();
         }
@@ -243,6 +243,10 @@ public class ListaSimplesNaoOrdenada<T> implements ColecaoIteravelLinearNaoOrden
             return corrente.seguinte != base;
         }
 
+        public int getCurrentIndex() {
+            return currentIndex; // Getter for the current index.
+        }
+
         @Override
         public T avancar() {
             if (!podeAvancar()) {
@@ -250,6 +254,7 @@ public class ListaSimplesNaoOrdenada<T> implements ColecaoIteravelLinearNaoOrden
             }
 
             corrente = corrente.seguinte;
+            currentIndex++; // Increment the position
             return corrente.elemento;
         }
     }

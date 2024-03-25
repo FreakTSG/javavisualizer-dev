@@ -33,8 +33,12 @@ public class MainTestes {
 
         //objectos que temos em memória quando o debug está pausado
         ListaSimplesNaoOrdenada<Integer> lista = new ListaSimplesNaoOrdenada<>();
+
         lista.inserir(5);
         lista.inserir(-3);
+        var iterator = lista.iterador();
+        iterator.avancar();
+        int currentIndex = ((ListaSimplesNaoOrdenada<Integer>.Iterador)iterator).getCurrentIndex();
 
         // Lista Dupla
         ListaDuplaNaoOrdenada<Integer> listaDupla = new ListaDuplaNaoOrdenada<>();
@@ -43,11 +47,7 @@ public class MainTestes {
         listaDupla.inserir(2);
         listaDupla.inserir(3);
 
-        TabelaHash<Integer, Integer> hashTable = new MyHashTable(10);
 
-        HashTableRepresentation hashTableRep = new HashTableRepresentation(new Point(30, 500), hashTable, canvas);
-
-        canvas.add(hashTable, hashTableRep);
 
 
 
@@ -63,14 +63,26 @@ public class MainTestes {
             canvas.add(owner, new PrimitiveOrEnumRepresentation(new Point(100 * (i + 1), 300), owner, canvas));
         }
 
-        //representação da lista
-        canvas.add(lista, new UnsortedCircularSimpleLinkedListWithBaseRepresentation(new Point(30, 30), lista, canvas));
+        UnsortedCircularSimpleLinkedListWithBaseRepresentation listRep =
+                new UnsortedCircularSimpleLinkedListWithBaseRepresentation(new Point(30, 30), lista, canvas);
+        // Here you pass the current position of the iterator to the representation.
+        listRep.updateIteratorPosition(currentIndex);
+        canvas.add(lista, listRep);
+
 
         // Representation of listaDupla
         UnsortedCircularDoubleLinkedListWithBaseRepresentation doubleListRep =
                 new UnsortedCircularDoubleLinkedListWithBaseRepresentation(new Point(30, 400), listaDupla, canvas); // Adjust the position as needed
 
         canvas.add(listaDupla, doubleListRep);
+
+        // Hash Table
+
+        TabelaHash<Integer, Integer> hashTable = new MyHashTable(10);
+
+        HashTableRepresentation hashTableRep = new HashTableRepresentation(new Point(30, 500), hashTable, canvas);
+
+        canvas.add(hashTable, hashTableRep);
 
 
 
