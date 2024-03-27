@@ -7,6 +7,7 @@ import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.naoordenadas
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.naoordenadas.estruturas.ListaSimplesNaoOrdenada;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.ordenadas.estruturas.ListaDuplaOrdenada;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.ordenadas.estruturas.ListaSimplesOrdenada;
+import com.aegamesi.java_visualizer.model.*;
 import com.aegamesi.java_visualizer.ui.ClassCreation;
 import com.aegamesi.java_visualizer.ui.IDSToolWindow;
 import com.aegamesi.java_visualizer.ui.MyCanvas;
@@ -36,108 +37,95 @@ public class MainTestes {
         jFrame.add(idsToolWindow.getComponent(), BorderLayout.CENTER);
         MyCanvas canvas = IDSToolWindow.myCanvas;
 
+        // Mock the creation of an ExecutionTrace and heap structures as if we were using Tracer
+        ExecutionTrace mockTrace = createMockedExecutionTrace();
 
-        //objectos que temos em memória quando o debug está pausado
-        ListaSimplesNaoOrdenada<Integer> lista = new ListaSimplesNaoOrdenada<>();
-
-        lista.inserir(5);
-        lista.inserir(-3);
-        var iterator = lista.iterador();
-        iterator.avancar();
-        int currentIndex = ((ListaSimplesNaoOrdenada<Integer>.Iterador)iterator).getCurrentIndex();
-
-        // Lista Dupla
-        ListaDuplaNaoOrdenada<Integer> listaDupla = new ListaDuplaNaoOrdenada<>();
-        listaDupla.inserir(6);
-        listaDupla.inserir(4);
-        listaDupla.inserir(2);
-        listaDupla.inserir(3);
-
-
-
-
-
-        //representação dos elementos da lista
-        for (int i = 0; i < lista.getNumeroElementos(); i++) {
-            Integer owner = lista.consultarPorIndice(i);
-            canvas.add(owner, new PrimitiveOrEnumRepresentation(new Point(100 * (i + 1), 200), owner, canvas));
-        }
-        // Represent the elements of listaDupla
-        for (int i = 0; i < listaDupla.getNumeroElementos(); i++) {
-            Integer owner = listaDupla.consultarPorIndice(i);
-            // Adjust position as needed for the double list representation
-            canvas.add(owner, new PrimitiveOrEnumRepresentation(new Point(100 * (i + 1), 300), owner, canvas));
-        }
-
-        UnsortedCircularSimpleLinkedListWithBaseRepresentation listRep =
-                new UnsortedCircularSimpleLinkedListWithBaseRepresentation(new Point(30, 30), lista, canvas);
-        // Here you pass the current position of the iterator to the representation.
-        listRep.updateIteratorPosition(currentIndex);
-        canvas.add(lista, listRep);
-
-
-        // Representation of listaDupla
-        UnsortedCircularDoubleLinkedListWithBaseRepresentation doubleListRep =
-                new UnsortedCircularDoubleLinkedListWithBaseRepresentation(new Point(30, 400), listaDupla, canvas); // Adjust the position as needed
-
-        canvas.add(listaDupla, doubleListRep);
-
-        // Hash Table
-
-        TabelaHash<Integer, Integer> hashTable = new MyHashTable(10);
-
-        HashTableRepresentation hashTableRep = new HashTableRepresentation(new Point(30, 300), hashTable, canvas);
-
-        canvas.add(hashTable, hashTableRep);
-
-
-        //Ordenadas
-
-        Comparacao<Integer> comparacao = (x, y) -> x.compareTo(y);
-
-
-        ListaSimplesOrdenada<Integer> listaSimplesOrdenada = new ListaSimplesOrdenada<>(comparacao);
-
-        listaSimplesOrdenada.inserir(10);
-        listaSimplesOrdenada.inserir(-8);
-
-
-        ListaDuplaOrdenada<Integer> listaDuplaOrdenada = new ListaDuplaOrdenada<>(comparacao);
-        listaDuplaOrdenada.inserir(8);
-        listaDuplaOrdenada.inserir(7);
-        listaDuplaOrdenada.inserir(17);
-        listaDuplaOrdenada.inserir(-13);
-
-        //representação dos elementos da lista
-        for (int i = 0; i < listaSimplesOrdenada.getNumeroElementos(); i++) {
-            Integer owner = listaSimplesOrdenada.consultarPorIndice(i);
-            canvas.add(owner, new PrimitiveOrEnumRepresentation(new Point(100 * (i + 1), 200), owner, canvas));
-        }
-
-        for (int i = 0; i < listaDuplaOrdenada.getNumeroElementos(); i++) {
-            Integer owner = listaDuplaOrdenada.consultarPorIndice(i);
-            // Adjust position as needed for the double list representation
-            canvas.add(owner, new PrimitiveOrEnumRepresentation(new Point(100 * (i + 1), 300), owner, canvas));
-        }
-
-        //representação da lista
-        //canvas.add(lista, new UnsortedCircularSimpleLinkedListWithBaseRepresentation(new Point(30, 30), lista, canvas));
-        canvas.add(listaSimplesOrdenada, new SortedCircularSimpleLinkedListWithBaseMaxOrderRepresentation(new Point(400, 30), listaSimplesOrdenada, canvas));
-
-        SortedCircularDoubleLinkedListWithBaseMaxOrderRepresentation doubleListRepOrdenada = new SortedCircularDoubleLinkedListWithBaseMaxOrderRepresentation(new Point(400, 400), listaDuplaOrdenada, canvas); // Adjust the position as needed
-
-        canvas.add(listaDuplaOrdenada, doubleListRepOrdenada);
-
-        doubleListRepOrdenada.update();
-
-
-// Update to reflect changes, if necessary
-        doubleListRep.update();
-
-
+        // Use the mocked data to create visual representations
+        createVisualRepresentations(mockTrace, canvas);
 
         jFrame.setMinimumSize(new Dimension(1000, 600));
         jFrame.setVisible(true);
         jFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+    }
+
+    private static ExecutionTrace createMockedExecutionTrace() {
+        // Instantiate and populate your ExecutionTrace and HeapList here...
+        // For example:
+        ExecutionTrace trace = new ExecutionTrace();
+        HeapList heapList = new HeapList(); // Your actual HeapList implementation
+
+        // Create a few nodes with sample values
+        Value firstNodeValue = new Value();
+        firstNodeValue.type = Value.Type.LONG;
+        firstNodeValue.longValue = 5;
+
+        Value secondNodeValue = new Value();
+        secondNodeValue.type = Value.Type.LONG;
+        secondNodeValue.longValue = -3;
+
+        // If your HeapList holds values directly
+        heapList.items.add(firstNodeValue);
+        heapList.items.add(secondNodeValue);
+
+        // If your HeapList holds HeapEntity objects that represent list nodes, create those here
+        // For example:
+        HeapObject firstNode = new HeapObject();
+        firstNode.fields.put("value", firstNodeValue);
+        // Assuming 'next' is the field name for the next node reference in your list node class
+        firstNode.fields.put("next", secondNodeValue);  // This is highly simplified; you'll need a way to represent the node connections
+
+        // Add similar logic for secondNode and more nodes if necessary
+
+        // Add the list to the trace's heap collection
+        trace.heap.put(1L, heapList); // The key should be a unique identifier
+
+        return trace;
+    }
+
+    // This method will depend heavily on the internal structure of your HeapList and ListaSimplesNaoOrdenada
+    private static ListaSimplesNaoOrdenada<Integer> convertHeapListToLinkedList(HeapList heapList) {
+        ListaSimplesNaoOrdenada<Integer> lista = new ListaSimplesNaoOrdenada<>();
+
+        // This assumes that HeapList holds values as Value objects representing integers
+        for (Value item : heapList.items) {
+            if (item.type == Value.Type.LONG) {
+                // Cast the longValue to Integer and add to the list
+                // This is because Java does not allow casting from long to Integer directly
+                // You may need to handle this differently if your list expects a different type
+                lista.inserir((int) item.longValue);
+            }
+            // If your list expects other types, you can add additional checks here
+        }
+
+        return lista;
+    }
+
+    private static void createVisualRepresentations(ExecutionTrace trace, MyCanvas canvas) {
+        for (HeapEntity entity : trace.heap.values()) {
+            // Check if the entity is a linked list and create the corresponding representation
+            if (entity instanceof HeapList) {
+                HeapList heapList = (HeapList) entity;
+                ListaSimplesNaoOrdenada<?> lista = convertHeapListToLinkedList(heapList);
+                // The below assumes you have a constructor for UnsortedCircularSimpleLinkedListWithBaseRepresentation
+                // that takes these parameters.
+                UnsortedCircularSimpleLinkedListWithBaseRepresentation listRepresentation =
+                        new UnsortedCircularSimpleLinkedListWithBaseRepresentation(
+                                new Point(30, 30), // Adjust position as needed
+                                lista, // You might need to cast or transform this
+                                canvas
+                        );
+
+                // Update the representation with any specific details, such as the iterator's position
+                // Assuming you have such a method on your representation class
+                listRepresentation.updateIteratorPosition(-1); // Set iterator position if needed
+
+                canvas.add(heapList, listRepresentation);
+            }
+            // Add similar logic for other types of HeapEntities (if any)
+        }
+
+        // Refresh canvas to display the new visual elements
+        canvas.revalidate();
+        canvas.repaint();
     }
 }
