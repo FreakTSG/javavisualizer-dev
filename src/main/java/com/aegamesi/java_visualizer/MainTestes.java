@@ -120,9 +120,12 @@ public class MainTestes {
                 listRepresentation.updateIteratorPosition(-1); // Set iterator position if needed
 
                 canvas.add(heapList, listRepresentation);
+
+
             }
             // Add similar logic for other types of HeapEntities (if any)
         }
+
 
         // Refresh canvas to display the new visual elements
         canvas.revalidate();
