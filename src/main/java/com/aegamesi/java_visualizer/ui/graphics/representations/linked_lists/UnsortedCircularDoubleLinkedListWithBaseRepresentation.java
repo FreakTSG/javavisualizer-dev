@@ -11,13 +11,20 @@ public class UnsortedCircularDoubleLinkedListWithBaseRepresentation extends
         CircularDoubleLinkedListWithBaseRepresentation<ListaDuplaNaoOrdenada, ListaDuplaNaoOrdenada.No> implements UnsortedListRepresentation {
     private static final long serialVersionUID = 1L;
 
+    private int iteratorPosition = -1;
+
     private FieldReference tailFieldReference;
 
     public UnsortedCircularDoubleLinkedListWithBaseRepresentation(Point position, ListaDuplaNaoOrdenada owner, MyCanvas myCanvas) {
         super(position, owner, myCanvas);
     }
 
-
+    public void updateIteratorPosition(int position) {
+        // Add a method to update the iterator's position
+        this.iteratorPosition = position;
+        // Invoke a repaint to update the visualization
+        myCanvas.repaint();
+    }
 
     @Override
     public void add(RepresentationWithInConnectors representationWithInConnectors) {
