@@ -1,6 +1,9 @@
 package com.aegamesi.java_visualizer.plugin;
 
 import com.aegamesi.java_visualizer.backend.Tracer;
+import com.aegamesi.java_visualizer.model.ExecutionTrace;
+import com.aegamesi.java_visualizer.ui.IDSToolWindow;
+import com.aegamesi.java_visualizer.ui.MyCanvas;
 import com.intellij.debugger.DebuggerManager;
 import com.intellij.debugger.engine.DebugProcess;
 import com.intellij.debugger.engine.SuspendContext;
@@ -31,7 +34,7 @@ public class JavaVisualizerManager implements XDebugSessionListener {
 
 	static final String PROPERTY_KEY_BASE = "java_visualizer.";
 	static final String KEY_ZOOM = PROPERTY_KEY_BASE + "zoom";
-
+	public static com.aegamesi.java_visualizer.ui.IDSToolWindow IDSToolWindow;
 	private XDebugSession debugSession;
 	private Content content;
 	private MainPane panel;
@@ -107,6 +110,22 @@ public class JavaVisualizerManager implements XDebugSessionListener {
 			e.printStackTrace();
 		}
 	}
+
+	private void updateVisualizer() {
+		ExecutionTrace trace = fetchCurrentExecutionTrace(); // Implement this method to fetch the current state from the debugger
+		if (trace != null && panel != null) {
+			panel.setTrace(trace);
+		}
+	}
+
+	private ExecutionTrace fetchCurrentExecutionTrace() {
+		// This method should return the current state of the program as an ExecutionTrace object
+		// The ExecutionTrace object should contain the current state of the heap and the current state of the program stack
+		// The ExecutionTrace object should be created based on the current state of the program obtained from the debugger
+		// The
+		return null;
+	}
+
 
 	private void forceRefreshVisualizer() {
 		try {

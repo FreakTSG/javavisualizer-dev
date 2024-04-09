@@ -20,16 +20,25 @@ public abstract class Connection<TOutConnector extends OutConnector, TRepresenta
         super(borderColor);
         this.source = source;
         this.target = target;
-        target.incrementReferenceCount();
+        if (this.target != null) {
+            this.target.incrementReferenceCount();
+        }
     }
 
     protected InConnector[] getTargetInConnectors() {
+        if (target == null) {
+            return new InConnector[0]; // Return an empty array if target is null.
+        }
         return target.getInConnectors();
     }
 
     protected Point getTargetPosition(Point sourcePosition) {
+        if (target == null) {
+            return sourcePosition; // Return the source position itself or some default if target is null.
+        }
         double minDistance = Double.MAX_VALUE;
         Point targetPosition = new Point(0, 0);
+
         for (InConnector inConnector : getTargetInConnectors()) {
             Point inConnectorCenterPosition = inConnector.getCenterPosition();
             double distanceSq = inConnectorCenterPosition.distanceSq(sourcePosition);
@@ -59,6 +68,10 @@ public abstract class Connection<TOutConnector extends OutConnector, TRepresenta
 
     @Override
     public void paint(Graphics g) {
+        if (target == null) {
+            // Optionally log a warning or handle this case as appropriate.
+            return; // Do not proceed with painting if target is null.
+        }
         final Color color = g.getColor();
         Stroke stroke = ((Graphics2D) g).getStroke();
         g.setColor(borderColor);
