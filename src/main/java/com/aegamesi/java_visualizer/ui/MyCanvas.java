@@ -1,16 +1,11 @@
 package com.aegamesi.java_visualizer.ui;
 
-import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.naoordenadas.estruturas.ListaDuplaNaoOrdenada;
-import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.naoordenadas.estruturas.ListaSimplesNaoOrdenada;
-import com.aegamesi.java_visualizer.model.*;
 import com.aegamesi.java_visualizer.ui.graphics.Connection;
 import com.aegamesi.java_visualizer.ui.graphics.OutConnector;
 import com.aegamesi.java_visualizer.ui.graphics.PositionalGraphicElement;
 import com.aegamesi.java_visualizer.ui.graphics.representations.DefaultRepresentation;
 import com.aegamesi.java_visualizer.ui.graphics.representations.Representation;
 import com.aegamesi.java_visualizer.ui.graphics.representations.RepresentationWithInConnectors;
-import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.UnsortedCircularDoubleLinkedListWithBaseRepresentation;
-import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.UnsortedCircularSimpleLinkedListWithBaseRepresentation;
 import com.aegamesi.java_visualizer.utils.Vetor2D;
 
 import javax.swing.*;
@@ -23,7 +18,6 @@ import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
-
 
 public class MyCanvas extends JPanel implements MouseListener, MouseMotionListener {
     private RepresentationWithInConnectors draggedRepresentation = null;
@@ -57,8 +51,6 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         zoom = 1;
         repaint();
 
-        //removeAllRepresentations();
-
     }
 
 
@@ -76,167 +68,6 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
             oldConnection.getTarget().decrementReferenceCount();
         }
         connectionByOutConnector.put(connection.getSource(), connection);
-    }
-
-    public void updateRepresentations(ExecutionTrace trace) {
-        createVisualRepresentations(trace, this); // You need to have this method defined based on your mock test
-        revalidate();
-        repaint();
-    }
-
-    /*public static void createVisualRepresentations(ExecutionTrace trace, MyCanvas canvas) {
-        for (HeapEntity entity : trace.heap.values()) {
-            // Check if the entity is a linked list and create the corresponding representation
-            System.out.println("What is going on here: " + entity.getClass().getName() + "\n");
-            System.out.println("What is going on here: " + HeapList.class.getName() + "\n");
-            if (entity instanceof HeapList) {
-                HeapList heapList = (HeapList) entity;
-
-
-                ListaSimplesNaoOrdenada<?> lista = convertHeapListToLinkedList(heapList);
-
-                // The below assumes you have a constructor for UnsortedCircularSimpleLinkedListWithBaseRepresentation
-                // that takes these parameters.
-
-                UnsortedCircularSimpleLinkedListWithBaseRepresentation listRepresentation =
-                        new UnsortedCircularSimpleLinkedListWithBaseRepresentation(
-                                new Point(30, 30), // Adjust position as needed
-                                lista, // You might need to cast or transform this
-                                canvas
-                        );
-
-
-                // Update the representation with any specific details, such as the iterator's position
-                // Assuming you have such a method on your representation class
-
-                listRepresentation.updateIteratorPosition(-1); // Set iterator position if needed
-
-
-                canvas.add(heapList, listRepresentation);
-
-            } else if (entity instanceof HeapObject) {
-                HeapObject heapList = (HeapObject) entity;
-
-
-                ListaDuplaNaoOrdenada<?> lista2 = convertHeapListToDoubleLinkedList(heapList);
-
-                // The below assumes you have a constructor for UnsortedCircularSimpleLinkedListWithBaseRepresentation
-                // that takes these parameters.
-
-                UnsortedCircularDoubleLinkedListWithBaseRepresentation listRepresentation2 =
-                        new UnsortedCircularDoubleLinkedListWithBaseRepresentation(
-                                new Point(30, 30), // Adjust position as needed
-                                lista2, // You might need to cast or transform this
-                                canvas
-                        );
-
-                // Update the representation with any specific details, such as the iterator's position
-                // Assuming you have such a method on your representation class
-
-                listRepresentation2.updateIteratorPosition(-1);
-
-                canvas.add(heapList, listRepresentation2);
-
-                System.out.println("What is going on here: " + lista2 + "\n");
-            }
-            // Add similar logic for other types of HeapEntities (if any)
-        }
-
-        if (canvas.representationWithInConnectorsByOwner.isEmpty()) {
-            System.out.println("No representations have been added to the canvas.");
-        } else {
-            System.out.println("Representations added to canvas: " + canvas.representationWithInConnectorsByOwner.size());
-        }
-        canvas.repaint();
-
-
-        // Refresh canvas to display the new visual elements
-        canvas.revalidate();
-        canvas.repaint();
-    }*/
-
-    public static void createVisualRepresentations(ExecutionTrace trace, MyCanvas canvas) {
-        ListaDuplaNaoOrdenada<Long> doubleLinkedList = new ListaDuplaNaoOrdenada<>();
-        canvas.removeAllRepresentations();
-        for (HeapEntity entity : trace.heap.values()) {
-            // Check if the entity is a linked list or an object and create the corresponding representation
-            if (entity instanceof HeapList) {
-                HeapList heapList = (HeapList) entity;
-                ListaSimplesNaoOrdenada<?> linkedList = convertHeapListToLinkedList(heapList);
-                UnsortedCircularSimpleLinkedListWithBaseRepresentation linkedListRepresentation =
-                        new UnsortedCircularSimpleLinkedListWithBaseRepresentation(
-                                new Point(30, 30), // Adjust position as needed
-                                linkedList,
-                                canvas
-                        );
-                linkedListRepresentation.updateIteratorPosition(-1);
-                canvas.add(heapList, linkedListRepresentation);
-            } else if (entity instanceof HeapObject) {
-                HeapObject heapObject = (HeapObject) entity;
-                Long newNumber = convertHeapObjectToDoubleLinkedList(heapObject);
-                doubleLinkedList.inserir(newNumber);
-                // Create the representation for doubleLinkedList outside of the loop
-                UnsortedCircularDoubleLinkedListWithBaseRepresentation doubleLinkedListRepresentation =
-                        new UnsortedCircularDoubleLinkedListWithBaseRepresentation(
-                                new Point(30, 30), // Adjust position as needed
-                                doubleLinkedList,
-                                canvas
-                        );
-
-                System.out.println("No representations have been added to the canvas." + doubleLinkedList);
-                // Update the iterator position
-                doubleLinkedListRepresentation.updateIteratorPosition(-1);
-
-                // Add the doubleLinkedList representation to the canvas
-                canvas.add(doubleLinkedList, doubleLinkedListRepresentation);
-                doubleLinkedListRepresentation.update();
-            }
-            // Add similar logic for other types of HeapEntities (if any)
-        }
-
-        if (canvas.representationWithInConnectorsByOwner.isEmpty()) {
-            System.out.println("No representations have been added to the canvas.");
-        } else {
-            System.out.println("Representations added to canvas: " + canvas.representationWithInConnectorsByOwner.size());
-        }
-        canvas.repaint();
-        canvas.revalidate();
-    }
-
-    private static ListaSimplesNaoOrdenada<Integer> convertHeapListToLinkedList(HeapList heapList) {
-        ListaSimplesNaoOrdenada<Integer> lista = new ListaSimplesNaoOrdenada<>();
-
-        // This assumes that HeapList holds values as Value objects representing integers
-        for (Value item : heapList.items) {
-            if (item.type == Value.Type.LONG) {
-                // Cast the longValue to Integer and add to the list
-                // This is because Java does not allow casting from long to Integer directly
-                // You may need to handle this differently if your list expects a different type
-                lista.inserir((int) item.longValue);
-            }
-            // If your list expects other types, you can add additional checks here
-        }
-
-        return lista;
-    }
-
-    private static Long convertHeapObjectToDoubleLinkedList(HeapObject heapObject) {
-        Long doubleLinkedList = null;
-
-        // Assuming fields in HeapObject contain integer values
-        for (Value value : heapObject.fields.values()) {
-            if (value.type == Value.Type.LONG) {
-                doubleLinkedList = value.longValue;
-            }
-            // You can add additional checks and handling for other value types if needed
-        }
-
-        return doubleLinkedList;
-    }
-    private void removeAllRepresentations() {
-        representationWithInConnectorsByOwner.clear();
-        connectionByOutConnector.clear();
-        positionalGraphicElements.clear();
     }
 
 
