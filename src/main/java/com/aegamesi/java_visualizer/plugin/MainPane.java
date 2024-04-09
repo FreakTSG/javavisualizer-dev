@@ -8,7 +8,7 @@ import com.intellij.ide.util.PropertiesComponent;
 import com.intellij.ui.components.JBScrollPane;
 
 import javax.swing.*;
-import java.awt.BorderLayout;
+import java.awt.*;
 
 class MainPane extends JPanel {
 	private JLabel placeholderLabel;
@@ -22,6 +22,7 @@ class MainPane extends JPanel {
         initializeCanvas();
         placeholderLabel = new JLabel("No visualization available", SwingConstants.CENTER);
         add(placeholderLabel, BorderLayout.CENTER);
+        myCanvas.setVisible(true);
     }
     private void initializeCanvas() {
         this.myCanvas = IDSToolWindow.getMyCanvas(); // Make sure this method correctly returns an instance of MyCanvas
@@ -31,16 +32,32 @@ class MainPane extends JPanel {
         }
     }
 	void setTrace(ExecutionTrace trace) {
-        if (this.myCanvas == null) {
-            initializeCanvas(); // Make sure MyCanvas is initialized
+        SwingUtilities.invokeLater(() -> {
+            if (this.myCanvas == null) {
+                initializeCanvas();
+            }
+            this.myCanvas.updateRepresentations(trace);
+        });
+        Container parent = this.myCanvas.getParent();
+        if (parent instanceof JViewport) {
+            parent = parent.getParent();
+            if (!(parent instanceof JBScrollPane)) {
+                // The parent is not a JBScrollPane, so we create a new JBScrollPane and add it
+                JBScrollPane scrollPane = new JBScrollPane(this.myCanvas);
+                add(scrollPane, BorderLayout.CENTER);
+            } // else the parent is already a JBScrollPane, no action needed.
+        } else {
+            // The parent is not a JViewport, which likely means the canvas has not been added yet.
+            // Add a new JBScrollPane containing the MyCanvas.
+            JBScrollPane scrollPane = new JBScrollPane(this.myCanvas);
+            add(scrollPane, BorderLayout.CENTER);
         }
-        this.myCanvas.updateRepresentations(trace);
-        // Remove placeholder and add the scroll pane containing MyCanvas
+        // Remove placeholder if present.
         if (placeholderLabel.getParent() != null) {
             remove(placeholderLabel);
         }
-        JBScrollPane scrollPane = new JBScrollPane(this.myCanvas);
-        add(scrollPane, BorderLayout.CENTER);
+
+        this.myCanvas.setVisible(true);
         revalidate();
         repaint();
 	}

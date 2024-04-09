@@ -29,6 +29,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
     private RepresentationWithInConnectors draggedRepresentation = null;
     private Point dragOffset = null;
 
+
     public static IDSToolWindow IDSToolWindow;
     private static final int i = 0;
     private final LinkedList<PositionalGraphicElement> positionalGraphicElements;
@@ -55,6 +56,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         setFocusable(true);
 
         zoom = 1;
+        setDoubleBuffered(true);
         repaint();
 
         //removeAllRepresentations();
@@ -156,11 +158,15 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
     }*/
 
     public static void createVisualRepresentations(ExecutionTrace trace, MyCanvas canvas) {
+        System.out.println("Creating visual representations for the trace");
         ListaDuplaNaoOrdenada<Long> doubleLinkedList = new ListaDuplaNaoOrdenada<>();
-        canvas.removeAllRepresentations();
+
         for (HeapEntity entity : trace.heap.values()) {
+            System.out.println("Creating visual representation for entity: " + entity);
+            canvas.removeAllRepresentations();
             // Check if the entity is a linked list or an object and create the corresponding representation
             if (entity instanceof HeapList) {
+                System.out.println("Creating visual representation for HeapList");
                 HeapList heapList = (HeapList) entity;
                 ListaSimplesNaoOrdenada<?> linkedList = convertHeapListToLinkedList(heapList);
                 UnsortedCircularSimpleLinkedListWithBaseRepresentation linkedListRepresentation =
@@ -172,6 +178,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                 linkedListRepresentation.updateIteratorPosition(-1);
                 canvas.add(heapList, linkedListRepresentation);
             } else if (entity instanceof HeapObject) {
+                System.out.println("Creating visual representation for HeapObject");
                 HeapObject heapObject = (HeapObject) entity;
                 Long newNumber = convertHeapObjectToDoubleLinkedList(heapObject);
                 doubleLinkedList.inserir(newNumber);
