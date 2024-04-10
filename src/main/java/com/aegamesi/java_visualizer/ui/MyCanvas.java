@@ -7,6 +7,7 @@ import com.aegamesi.java_visualizer.ui.graphics.Connection;
 import com.aegamesi.java_visualizer.ui.graphics.OutConnector;
 import com.aegamesi.java_visualizer.ui.graphics.PositionalGraphicElement;
 import com.aegamesi.java_visualizer.ui.graphics.representations.DefaultRepresentation;
+import com.aegamesi.java_visualizer.ui.graphics.representations.PrimitiveOrEnumRepresentation;
 import com.aegamesi.java_visualizer.ui.graphics.representations.Representation;
 import com.aegamesi.java_visualizer.ui.graphics.representations.RepresentationWithInConnectors;
 import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.UnsortedCircularDoubleLinkedListWithBaseRepresentation;
@@ -40,6 +41,9 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
     private final boolean compactMode;
     private final float zoom;
     private Point mousePosition = new Point(0, 0);
+    private static final int START_X = 100;
+    private static final int START_Y = 100;
+    private static final int HORIZONTAL_SPACING = 50;
 
 
     public MyCanvas(IDSToolWindow IDSToolWindow) {
@@ -160,10 +164,10 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
     public static void createVisualRepresentations(ExecutionTrace trace, MyCanvas canvas) {
         System.out.println("Creating visual representations for the trace");
         ListaDuplaNaoOrdenada<Long> doubleLinkedList = new ListaDuplaNaoOrdenada<>();
-
+        canvas.removeAllRepresentations();
         for (HeapEntity entity : trace.heap.values()) {
             System.out.println("Creating visual representation for entity: " + entity);
-            canvas.removeAllRepresentations();
+
             // Check if the entity is a linked list or an object and create the corresponding representation
             if (entity instanceof HeapList) {
                 System.out.println("Creating visual representation for HeapList");
@@ -175,8 +179,17 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                                 linkedList,
                                 canvas
                         );
+                System.out.println("Lista valores:" + linkedList);
                 linkedListRepresentation.updateIteratorPosition(-1);
                 canvas.add(heapList, linkedListRepresentation);
+                int index = 0; // Just an example, adjust according to your position calculation
+                for (Object item : linkedList) { // Assuming you can iterate over the list
+                    Point position = calculatePositionForListItem(index); // You need to implement this method
+                    PrimitiveOrEnumRepresentation itemRepresentation =
+                            new PrimitiveOrEnumRepresentation(position, item, canvas);
+                    canvas.add(item, itemRepresentation);
+                    index++;
+                }
             } else if (entity instanceof HeapObject) {
                 System.out.println("Creating visual representation for HeapObject");
                 HeapObject heapObject = (HeapObject) entity;
@@ -190,7 +203,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                                 canvas
                         );
 
-                System.out.println("No representations have been added to the canvas." + doubleLinkedList);
+                System.out.println("No representations lista dupla have been added to the canvas." + doubleLinkedList);
                 // Update the iterator position
                 doubleLinkedListRepresentation.updateIteratorPosition(-1);
 
@@ -202,12 +215,23 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         }
 
         if (canvas.representationWithInConnectorsByOwner.isEmpty()) {
-            System.out.println("No representations have been added to the canvas.");
+            System.out.println("No representations lista dupla have been added to the canvas.");
         } else {
-            System.out.println("Representations added to canvas: " + canvas.representationWithInConnectorsByOwner.size());
+            System.out.println("Representations lista dupla added to canvas: " + canvas.representationWithInConnectorsByOwner.size());
         }
-        canvas.repaint();
+        refreshCanvas(canvas);
+    }
+    private static Point calculatePositionForListItem(int index) {
+        // Implement your logic to calculate the position based on the index
+        // For example:
+        int x = START_X + index * HORIZONTAL_SPACING;
+        int y = START_Y;
+        return new Point(x, y);
+    }
+    private static void refreshCanvas(MyCanvas canvas) {
+        canvas.invalidate();
         canvas.revalidate();
+        canvas.repaint();
     }
 
     private static ListaSimplesNaoOrdenada<Integer> convertHeapListToLinkedList(HeapList heapList) {
