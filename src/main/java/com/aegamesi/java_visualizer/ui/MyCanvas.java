@@ -44,6 +44,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
     private static final int START_X = 100;
     private static final int START_Y = 100;
     private static final int HORIZONTAL_SPACING = 50;
+    private static final int VERTICAL_SPACING = 50;
 
 
     public MyCanvas(IDSToolWindow IDSToolWindow) {
@@ -173,6 +174,15 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                 System.out.println("Creating visual representation for HeapList");
                 HeapList heapList = (HeapList) entity;
                 ListaSimplesNaoOrdenada<?> linkedList = convertHeapListToLinkedList(heapList);
+                int index = 0; // Just an example, adjust according to your position calculation
+                for (Object item : linkedList) { // Assuming you can iterate over the list
+                    Point position = calculatePositionForListItem(index); // You need to implement this method
+                    System.out.println("Posicao do index: " + index);
+                    PrimitiveOrEnumRepresentation itemRepresentation =
+                            new PrimitiveOrEnumRepresentation(position, item, canvas);
+                    canvas.add(item, itemRepresentation);
+                    index++;
+                }
                 UnsortedCircularSimpleLinkedListWithBaseRepresentation linkedListRepresentation =
                         new UnsortedCircularSimpleLinkedListWithBaseRepresentation(
                                 new Point(30, 30), // Adjust position as needed
@@ -182,14 +192,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                 System.out.println("Lista valores:" + linkedList);
                 linkedListRepresentation.updateIteratorPosition(-1);
                 canvas.add(heapList, linkedListRepresentation);
-                int index = 0; // Just an example, adjust according to your position calculation
-                for (Object item : linkedList) { // Assuming you can iterate over the list
-                    Point position = calculatePositionForListItem(index); // You need to implement this method
-                    PrimitiveOrEnumRepresentation itemRepresentation =
-                            new PrimitiveOrEnumRepresentation(position, item, canvas);
-                    canvas.add(item, itemRepresentation);
-                    index++;
-                }
+
             } else if (entity instanceof HeapObject) {
                 System.out.println("Creating visual representation for HeapObject");
                 HeapObject heapObject = (HeapObject) entity;
@@ -225,7 +228,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         // Implement your logic to calculate the position based on the index
         // For example:
         int x = START_X + index * HORIZONTAL_SPACING;
-        int y = START_Y;
+        int y = START_Y + VERTICAL_SPACING;
         return new Point(x, y);
     }
     private static void refreshCanvas(MyCanvas canvas) {
