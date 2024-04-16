@@ -35,4 +35,13 @@ public class HeapObject extends HeapEntity {
 		}
 		return e;
 	}
+
+	public static boolean isSimpleList(HeapObject heapObject) {
+		return heapObject.fields.containsKey("head") || heapObject.fields.containsKey("tail") && heapObject.fields.containsKey("head");
+	}
+
+
+	public static boolean isDoubleList(HeapObject heapObject) {
+		return heapObject.fields.containsKey("head") && heapObject.fields.containsKey("tail") && heapObject.fields.containsKey("prev");
+	}
 }

@@ -24,6 +24,13 @@ import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
+
+
+import static com.aegamesi.java_visualizer.model.HeapObject.isDoubleList;
+import static com.aegamesi.java_visualizer.model.HeapObject.isSimpleList;
+import static com.aegamesi.java_visualizer.model.Value.Type.LONG;
+import static com.aegamesi.java_visualizer.model.Value.Type.STRING;
 
 
 public class MyCanvas extends JPanel implements MouseListener, MouseMotionListener {
@@ -164,69 +171,47 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
     public static void createVisualRepresentations(ExecutionTrace trace, MyCanvas canvas) {
         System.out.println("Creating visual representations for the trace");
-        ListaDuplaNaoOrdenada<Long> doubleLinkedList = new ListaDuplaNaoOrdenada<>();
+        Map<Long, HeapEntity> heapMap = buildHeapMap(trace);
         canvas.removeAllRepresentations();
         for (HeapEntity entity : trace.heap.values()) {
             System.out.println("Creating visual representation for entity: " + entity);
 
-            // Check if the entity is a linked list or an object and create the corresponding representation
+            // Check if the entity is a list of lists (HeapList) and handle it separately
             if (entity instanceof HeapList) {
-                System.out.println("Creating visual representation for HeapList");
+                System.out.println("Processing a HeapList which might be a list of lists.");
                 HeapList heapList = (HeapList) entity;
-                ListaSimplesNaoOrdenada<?> linkedList = convertHeapListToLinkedList(heapList);
-                int index = 0; // Just an example, adjust according to your position calculation
-                for (Object item : linkedList) { // Assuming you can iterate over the list
-                    Point position = calculatePositionForListItem(index); // You need to implement this method
-                    System.out.println("Posicao do index: " + index);
-                    PrimitiveOrEnumRepresentation itemRepresentation =
-                            new PrimitiveOrEnumRepresentation(position, item, canvas);
-                    canvas.add(item, itemRepresentation);
-                    index++;
+                if (isListOfLists(heapList, heapMap)) {
+                    System.out.println("The HeapList is a list of lists.");
+                    representListOfLists(heapList, canvas, heapMap);
                 }
-                UnsortedCircularSimpleLinkedListWithBaseRepresentation linkedListRepresentation =
-                        new UnsortedCircularSimpleLinkedListWithBaseRepresentation(
-                                new Point(30, 30), // Adjust position as needed
-                                linkedList,
-                                canvas
-                        );
-                System.out.println("Lista valores:" + linkedList);
-                linkedListRepresentation.updateIteratorPosition(-1);
-                canvas.add(heapList, linkedListRepresentation);
+
 
             } else if (entity instanceof HeapObject) {
-                System.out.println("Creating visual representation for HeapObject");
+                System.out.println("Entrei nos heapObjects");
                 HeapObject heapObject = (HeapObject) entity;
-                Long newNumber = convertHeapObjectToDoubleLinkedList(heapObject);
-                doubleLinkedList.inserir(newNumber);
-                // Create the representation for doubleLinkedList outside of the loop
-                UnsortedCircularDoubleLinkedListWithBaseRepresentation doubleLinkedListRepresentation =
-                        new UnsortedCircularDoubleLinkedListWithBaseRepresentation(
-                                new Point(30, 30), // Adjust position as needed
-                                doubleLinkedList,
-                                canvas
-                        );
-
-                System.out.println("No representations lista dupla have been added to the canvas." + doubleLinkedList);
-                // Update the iterator position
-                doubleLinkedListRepresentation.updateIteratorPosition(-1);
-
-                // Add the doubleLinkedList representation to the canvas
-                canvas.add(doubleLinkedList, doubleLinkedListRepresentation);
-                doubleLinkedListRepresentation.update();
+                determineAndRepresentHeapObject(heapObject, canvas,heapMap);
             }
-            // Add similar logic for other types of HeapEntities (if any)
+
         }
 
         if (canvas.representationWithInConnectorsByOwner.isEmpty()) {
-            System.out.println("No representations lista dupla have been added to the canvas.");
+            System.out.println("No representations lista have been added to the canvas.");
         } else {
-            System.out.println("Representations lista dupla added to canvas: " + canvas.representationWithInConnectorsByOwner.size());
+            System.out.println("Representations lista added to canvas: " + canvas.representationWithInConnectorsByOwner.size());
         }
         refreshCanvas(canvas);
+    }
+    private static Map<Long, HeapEntity> buildHeapMap(ExecutionTrace trace) {
+        Map<Long, HeapEntity> map = new HashMap<>();
+        for (HeapEntity heapEntity : trace.heap.values()) {
+            map.put(heapEntity.id, heapEntity);  // Correctly using HeapEntity
+        }
+        return map;
     }
     private static Point calculatePositionForListItem(int index) {
         // Implement your logic to calculate the position based on the index
         // For example:
+
         int x = START_X + index * HORIZONTAL_SPACING;
         int y = START_Y + VERTICAL_SPACING;
         return new Point(x, y);
@@ -237,36 +222,105 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         canvas.repaint();
     }
 
-    private static ListaSimplesNaoOrdenada<Integer> convertHeapListToLinkedList(HeapList heapList) {
-        ListaSimplesNaoOrdenada<Integer> lista = new ListaSimplesNaoOrdenada<>();
-
-        // This assumes that HeapList holds values as Value objects representing integers
-        for (Value item : heapList.items) {
-            if (item.type == Value.Type.LONG) {
-                // Cast the longValue to Integer and add to the list
-                // This is because Java does not allow casting from long to Integer directly
-                // You may need to handle this differently if your list expects a different type
-                lista.inserir((int) item.longValue);
-            }
-            // If your list expects other types, you can add additional checks here
+    private static void determineAndRepresentHeapObject(HeapObject heapObject, MyCanvas canvas, Map<Long, HeapEntity> heapMap) {
+        if (isSimpleList(heapObject)) {
+            ListaSimplesNaoOrdenada<?> simpleList = convertHeapObjectToSimpleList(heapObject, heapMap);
+            addSimpleListRepresentation(simpleList, canvas);
+            System.out.println("Simple list represented.");
+        } else if (isDoubleList(heapObject)) {
+            ListaDuplaNaoOrdenada<?> doubleList = convertHeapObjectToDoubleList(heapObject, heapMap);
+            addDoubleListRepresentation(doubleList, canvas);
+            System.out.println("Double list represented.");
         }
 
-        return lista;
+
     }
 
-    private static Long convertHeapObjectToDoubleLinkedList(HeapObject heapObject) {
-        Long doubleLinkedList = null;
+    private static void addSimpleListRepresentation(ListaSimplesNaoOrdenada<?> simpleList, MyCanvas canvas) {
+        // Logic to create a visual representation for the simple list and add it to the canvas
+        // This might involve creating new GraphicElement objects and adding them to the canvas
+        int index = 0;
+        for (Object item : simpleList) {
+            Point position = calculatePositionForListItem(index);
+            PrimitiveOrEnumRepresentation itemRepresentation = new PrimitiveOrEnumRepresentation(position, item, canvas);
+            canvas.add(item, itemRepresentation);
+            index++;
+        }
+         UnsortedCircularSimpleLinkedListWithBaseRepresentation representation =
+              new UnsortedCircularSimpleLinkedListWithBaseRepresentation(new Point(START_X, START_Y), simpleList, canvas);
+         canvas.add(simpleList, representation);
+        System.out.println("Lista valores:" + simpleList);
+        refreshCanvas(canvas);
 
-        // Assuming fields in HeapObject contain integer values
-        for (Value value : heapObject.fields.values()) {
-            if (value.type == Value.Type.LONG) {
-                doubleLinkedList = value.longValue;
+    }
+
+    private static void addDoubleListRepresentation(ListaDuplaNaoOrdenada<?> doubleList, MyCanvas canvas) {
+        // Logic to create a visual representation for the double list and add it to the canvas
+        // This might involve creating new GraphicElement objects and adding them to the canvas
+
+         UnsortedCircularDoubleLinkedListWithBaseRepresentation representation =
+              new UnsortedCircularDoubleLinkedListWithBaseRepresentation(new Point(START_X, START_Y), doubleList, canvas);
+            canvas.add(doubleList, representation);
+
+    }
+
+    private static ListaDuplaNaoOrdenada<?> convertHeapObjectToDoubleList(HeapObject heapObject,Map<Long, HeapEntity> heapMap) {
+        // Conversion logic from HeapObject to ListaDuplaNaoOrdenada
+        // This is just placeholder logic; you need to implement the actual conversion based on your application's needs.
+        ListaDuplaNaoOrdenada<?> list = new ListaDuplaNaoOrdenada<>();
+        // ...populate the list based on the heapObject's data
+        return list;
+    }
+    private static ListaSimplesNaoOrdenada<Object> convertHeapObjectToSimpleList(HeapObject heapObject, Map<Long, HeapEntity> heapMap) {
+        ListaSimplesNaoOrdenada<Object> list = new ListaSimplesNaoOrdenada<>();
+        Value headValue = heapObject.fields.get("head");
+
+        while (headValue != null && headValue.type == Value.Type.REFERENCE && headValue.reference != 0) {
+            HeapEntity entity = heapMap.get(headValue.reference); // Retrieve as HeapEntity
+            if (!(entity instanceof HeapObject)) {
+                break; // Break if it's not a HeapObject
             }
-            // You can add additional checks and handling for other value types if needed
+            HeapObject currentNode = (HeapObject) entity;
+
+            Value dataValue = currentNode.fields.get("data");
+            if (dataValue != null) {
+                Object actualData = dataValue.getActualValue(); // Convert Value to actual data
+                list.inserir(actualData);
+                System.out.println("Inserted: " + actualData);
+            }
+
+            headValue = currentNode.fields.get("next"); // Move to the next node
         }
 
-        return doubleLinkedList;
+        return list;
     }
+    private static boolean isListOfLists(HeapList heapList, Map<Long, HeapEntity> heapMap) {
+        // This method would check if the elements of the HeapList are themselves lists
+        // For a more accurate implementation, you might check the type or specific properties of elements
+        for (Value value : heapList.items) {
+            if (value.type == Value.Type.REFERENCE) {
+                HeapEntity possibleList = heapMap.get(value.reference);
+                if (possibleList instanceof HeapList) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static void representListOfLists(HeapList heapList, MyCanvas canvas, Map<Long, HeapEntity> heapMap) {
+        for (Value value : heapList.items) {
+            if (value.type == Value.Type.REFERENCE) {
+                HeapEntity subEntity = heapMap.get(value.reference);
+                if (subEntity instanceof HeapObject) {
+                    determineAndRepresentHeapObject((HeapObject) subEntity, canvas, heapMap);  // Recursive call
+                }
+            }
+        }
+    }
+
+
+
     private void removeAllRepresentations() {
         representationWithInConnectorsByOwner.clear();
         connectionByOutConnector.clear();
