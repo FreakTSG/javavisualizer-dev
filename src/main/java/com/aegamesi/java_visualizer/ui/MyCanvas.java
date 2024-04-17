@@ -180,10 +180,34 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
             if (entity instanceof HeapList) {
                 System.out.println("Processing a HeapList which might be a list of lists.");
                 HeapList heapList = (HeapList) entity;
-                if (isListOfLists(heapList, heapMap)) {
-                    System.out.println("The HeapList is a list of lists.");
-                    representListOfLists(heapList, canvas, heapMap);
+
+                //print whats inside the heaplist
+                for (Value value : heapList.items) {
+                    System.out.println("Value Type: " + value.type);
+                    switch (value.type) {
+                        case LONG:
+                            System.out.println("Long value: " + value.longValue);
+                            break;
+                        case STRING:
+                            System.out.println("String value: " + value.stringValue);
+                            break;
+                        case REFERENCE:
+                            System.out.println("Reference to entity with ID: " + value.reference);
+                            if (heapMap.containsKey(value.reference)) {
+                                System.out.println("Referenced Entity: " + heapMap.get(value.reference).getClass().getSimpleName());
+                            } else {
+                                System.out.println("Reference not found in heapMap.");
+                            }
+                            break;
+                    }
                 }
+
+
+               //if (isListOfLists(heapList, heapMap)) {
+               //    System.out.println("The HeapList is a list of lists.");
+               //    representListOfLists(heapList, canvas, heapMap);
+               //}
+                representListOfLists(heapList, canvas, heapMap);
 
 
             } else if (entity instanceof HeapObject) {
@@ -234,6 +258,8 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         }
 
 
+
+
     }
 
     private static void addSimpleListRepresentation(ListaSimplesNaoOrdenada<?> simpleList, MyCanvas canvas) {
@@ -250,6 +276,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
               new UnsortedCircularSimpleLinkedListWithBaseRepresentation(new Point(START_X, START_Y), simpleList, canvas);
          canvas.add(simpleList, representation);
         System.out.println("Lista valores:" + simpleList);
+
         refreshCanvas(canvas);
 
     }
@@ -271,6 +298,20 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         // ...populate the list based on the heapObject's data
         return list;
     }
+
+    private static boolean isListOfLists(HeapList heapList, Map<Long, HeapEntity> heapMap) {
+        // This method checks if the elements of the HeapList are themselves lists
+        for (Value value : heapList.items) {
+            if (value.type == Value.Type.REFERENCE) {
+                HeapEntity possibleList = heapMap.get(value.reference);
+                if (possibleList instanceof HeapList) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     private static ListaSimplesNaoOrdenada<Object> convertHeapObjectToSimpleList(HeapObject heapObject, Map<Long, HeapEntity> heapMap) {
         ListaSimplesNaoOrdenada<Object> list = new ListaSimplesNaoOrdenada<>();
         Value headValue = heapObject.fields.get("head");
@@ -294,29 +335,52 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
         return list;
     }
-    private static boolean isListOfLists(HeapList heapList, Map<Long, HeapEntity> heapMap) {
-        // This method would check if the elements of the HeapList are themselves lists
-        // For a more accurate implementation, you might check the type or specific properties of elements
+    private static ListaSimplesNaoOrdenada<Object> convertHeapListToSimpleList(HeapList heapList, Map<Long, HeapEntity> heapMap) {
+        ListaSimplesNaoOrdenada<Object> list = new ListaSimplesNaoOrdenada<>();
+        System.out.println("Converting HeapList with items count: " + heapList.items.size());  // Debugging output
+
         for (Value value : heapList.items) {
+            System.out.println("Processing Value: " + value);  // Debugging output
+
             if (value.type == Value.Type.REFERENCE) {
-                HeapEntity possibleList = heapMap.get(value.reference);
-                if (possibleList instanceof HeapList) {
-                    return true;
+                HeapEntity entity = heapMap.get(value.reference);
+                System.out.println("Retrieved entity from map: " + entity);  // Debugging output
+
+                if (entity instanceof HeapObject) {
+                    // Convert the referenced HeapObject to a SimpleList and add it as an item in the current list
+                    ListaSimplesNaoOrdenada<Object> subList = convertHeapObjectToSimpleList((HeapObject) entity, heapMap);
+                    System.out.println("Converted subList: " + subList);  // Debugging output
+
+                    list.inserir(subList);
                 }
             }
         }
-        return false;
+
+        System.out.println("Final converted list: " + list);  // Debugging output
+        return list;
+    }
+    private static ListaSimplesNaoOrdenada<Integer> convertHeapListToLinkedList(HeapList heapList) {
+        ListaSimplesNaoOrdenada<Integer> lista = new ListaSimplesNaoOrdenada<>();
+
+        // This assumes that HeapList holds values as Value objects representing integers
+        for (Value item : heapList.items) {
+            if (item.type == Value.Type.LONG) {
+                lista.inserir((int) item.longValue);
+            }
+            // If your list expects other types, you can add additional checks here
+        }
+
+        return lista;
     }
 
     private static void representListOfLists(HeapList heapList, MyCanvas canvas, Map<Long, HeapEntity> heapMap) {
-        for (Value value : heapList.items) {
-            if (value.type == Value.Type.REFERENCE) {
-                HeapEntity subEntity = heapMap.get(value.reference);
-                if (subEntity instanceof HeapObject) {
-                    determineAndRepresentHeapObject((HeapObject) subEntity, canvas, heapMap);  // Recursive call
-                }
-            }
-        }
+        // Convert the entire HeapList to a single ListaSimplesNaoOrdenada
+        ListaSimplesNaoOrdenada<Object> simpleList = convertHeapListToSimpleList(heapList, heapMap);
+        addSimpleListRepresentation(simpleList, canvas);  // Represent this list as a whole
+
+        // Optionally, iterate over individual lists if needed for further granular representations
+
+        System.out.println("List of lists represented.");
     }
 
 
