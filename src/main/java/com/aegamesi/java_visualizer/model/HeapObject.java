@@ -37,7 +37,8 @@ public class HeapObject extends HeapEntity {
 	}
 
 	public static boolean isSimpleList(HeapObject heapObject) {
-		return heapObject.fields.containsKey("head") || heapObject.fields.containsKey("tail") && heapObject.fields.containsKey("head");
+
+		return heapObject.fields.containsKey("base") && heapObject.fields.containsKey("noFinal");
 	}
 
 

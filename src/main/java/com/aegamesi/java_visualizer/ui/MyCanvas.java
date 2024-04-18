@@ -22,17 +22,14 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.*;
 
 
 import static com.aegamesi.java_visualizer.model.HeapObject.isDoubleList;
 import static com.aegamesi.java_visualizer.model.HeapObject.isSimpleList;
 import static com.aegamesi.java_visualizer.model.Value.Type.LONG;
 import static com.aegamesi.java_visualizer.model.Value.Type.STRING;
-
+import static com.aegamesi.java_visualizer.ui.IDSToolWindow.myCanvas;
 
 
 public class MyCanvas extends JPanel implements MouseListener, MouseMotionListener {
@@ -206,17 +203,30 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                 }
 
 
-               //if (isListOfLists(heapList, heapMap)) {
-               //    System.out.println("The HeapList is a list of lists.");
-               //    representListOfLists(heapList, canvas, heapMap);
-               //}
-                representListOfLists(heapList, canvas, heapMap);
 
 
-            } else if (entity instanceof HeapObject) {
+
+
+            } else if (entity instanceof HeapObject ) {
+                HeapObject HeapObject = (HeapObject) entity;
+
                 System.out.println("Entrei nos heapObjects");
-                HeapObject heapObject = (HeapObject) entity;
-                determineAndRepresentHeapObject(heapObject, canvas,heapMap);
+
+                System.out.println("heapobject fields: "+HeapObject.fields+" acaba aqui");
+                System.out.println("heapobject id: "+HeapObject.id+" acaba aqui");
+                System.out.println("heapobject type: "+HeapObject.type+" acaba aqui");
+                System.out.println("heapobject label: "+HeapObject.label+" acaba aqui");
+                System.out.println("heapobject class: "+HeapObject.getClass()+" acaba aqui");
+                if(isSimpleList(HeapObject)){
+                    System.out.println("Entrei na lista simples nao ordenada");
+                    ListaSimplesNaoOrdenada<?> simpleList=convertHeapObjectToListofLists(HeapObject, heapMap);
+                    System.out.println("Simple list converted "+simpleList);
+                    addSimpleListRepresentation(simpleList, canvas);
+
+                }
+
+
+                //determineAndRepresentHeapObject(heapObject, canvas,heapMap);
             }
 
         }
@@ -246,21 +256,20 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         canvas.repaint();
     }
 
-    private void determineAndRepresentHeapObject(HeapObject heapObject, MyCanvas canvas, Map<Long, HeapEntity> heapMap) {
-        if (isSimpleList(heapObject)) {
-            ListaSimplesNaoOrdenada<?> simpleList = convertHeapObjectToSimpleList(heapObject, heapMap);
-            addSimpleListRepresentation(simpleList, canvas);
-            System.out.println("Simple list represented.");
-        } else if (isDoubleList(heapObject)) {
-            ListaDuplaNaoOrdenada<?> doubleList = convertHeapObjectToDoubleList(heapObject, heapMap);
-            addDoubleListRepresentation(doubleList, canvas);
-            System.out.println("Double list represented.");
-        }
+   //private void determineAndRepresentHeapObject(HeapObject heapObject, MyCanvas canvas, Map<Long, HeapEntity> heapMap) {
+
+
+
+   //        ListaSimplesNaoOrdenada<?> simpleList = convertHeapObjectToSimpleList(heapObject, heapMap);
+   //        addSimpleListRepresentation(simpleList, canvas);
+   //        System.out.println("Simple list represented.");
 
 
 
 
-    }
+
+
+   //}
 
     private void addSimpleListRepresentation(ListaSimplesNaoOrdenada<?> simpleList, MyCanvas canvas) {
         // Logic to create a visual representation for the simple list and add it to the canvas
@@ -326,42 +335,85 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         return list;
     }
 
-    private boolean isListOfLists(HeapList heapList, Map<Long, HeapEntity> heapMap) {
-        // This method checks if the elements of the HeapList are themselves lists
-        for (Value value : heapList.items) {
-            if (value.type == Value.Type.REFERENCE) {
-                HeapEntity possibleList = heapMap.get(value.reference);
-                if (possibleList instanceof HeapList) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
+
 
     private ListaSimplesNaoOrdenada<Object> convertHeapObjectToSimpleList(HeapObject heapObject, Map<Long, HeapEntity> heapMap) {
-        ListaSimplesNaoOrdenada<Object> simpleList = new ListaSimplesNaoOrdenada<>(); // No need to return this list
-        Value headValue = heapObject.fields.get("head");
+        ListaSimplesNaoOrdenada<Object> simpleList = new ListaSimplesNaoOrdenada<>();
+        Value headValue = heapObject.fields.get("base"); // Start from the 'base', not 'noFinal'
+        Set<Long> visitedNodeIds = new HashSet<>(); // To detect cycles
+
+        // The base node itself should not be added, so move to the first actual element
+        headValue = ((HeapObject)heapMap.get(headValue.reference)).fields.get("seguinte");
 
         while (headValue != null && headValue.type == Value.Type.REFERENCE && headValue.reference != 0) {
-            HeapEntity entity = heapMap.get(headValue.reference); // Retrieve as HeapEntity
+            if (visitedNodeIds.contains(headValue.reference)) {
+                System.out.println("Cycle detected or reached base node again. Terminating.");
+                break; // Detect a cycle or the traversal has reached the base node again
+            }
+            visitedNodeIds.add(headValue.reference); // Track the visited nodes
+
+            HeapEntity entity = heapMap.get(headValue.reference);
             if (!(entity instanceof HeapObject)) {
-                break; // Break if it's not a HeapObject
+                break;
             }
             HeapObject currentNode = (HeapObject) entity;
 
-            Value dataValue = currentNode.fields.get("data");
-            if (dataValue != null) {
-                Object actualData = dataValue.getActualValue(); // Convert Value to actual data
-                simpleList.inserir(actualData); // Directly add data to the outer list
-                System.out.println("Inserted: " + actualData);
+            if (currentNode.fields.get("elemento")!=null) { // Make sure it's not the base sentinel node
+                Value dataValue = currentNode.fields.get("elemento");
+                if (dataValue != null) {
+                    Object actualData = dataValue.getActualValue();
+                    if (actualData != null) {
+                        simpleList.inserirNoInicio(actualData);
+                        System.out.println("Inserted: " + actualData);
+                    } else {
+                        System.out.println("Actual Data is null for node with ID: " + currentNode.id);
+                    }
+                } else {
+                    System.out.println("Data Value is null for node with ID: " + currentNode.id);
+                }
             }
 
-            headValue = currentNode.fields.get("next"); // Move to the next node
+            headValue = currentNode.fields.get("seguinte"); // Move to the next node
         }
         return simpleList;
-        // Don't return the list here, modifications are done on the parameter list
     }
+    private ListaSimplesNaoOrdenada<Object> convertHeapObjectToListofLists(HeapObject heapObject, Map<Long, HeapEntity> heapMap) {
+        ListaSimplesNaoOrdenada<Object> list = new ListaSimplesNaoOrdenada<>();
+        Value headValue = heapObject.fields.get("base"); // Start from the 'base'
+        headValue = ((HeapObject)heapMap.get(headValue.reference)).fields.get("seguinte"); // Skip the sentinel node
+
+        Set<Long> visitedNodeIds = new HashSet<>(); // To detect cycles
+
+        while (headValue != null && headValue.type == Value.Type.REFERENCE && headValue.reference != 0) {
+            if (visitedNodeIds.contains(headValue.reference)) {
+                break; // Detect a cycle or the traversal has reached the base node again
+            }
+            visitedNodeIds.add(headValue.reference); // Track the visited nodes
+
+            HeapObject currentNode = (HeapObject) heapMap.get(headValue.reference);
+            Value dataValue = currentNode.fields.get("elemento");
+
+            // Check if the dataValue is a reference to another list ( another HeapObject)
+            if (dataValue != null && dataValue.type == Value.Type.REFERENCE) {
+                HeapObject innerListObject = (HeapObject) heapMap.get(dataValue.reference);
+                if (isSimpleList(innerListObject)) {
+                    // It's a simple list, convert it to a simple list and add it to the current list
+                    ListaSimplesNaoOrdenada<Object> innerList = convertHeapObjectToSimpleList(innerListObject, heapMap);
+                    list.inserirNoInicio(innerList);
+                }
+            } else if (dataValue != null) {
+                // It's a direct value, add it to the current list
+                Object actualData = dataValue.getActualValue();
+                if (actualData != null) {
+                    list.inserirNoInicio(actualData);
+                }
+            }
+
+            headValue = currentNode.fields.get("seguinte"); // Move to the next node
+        }
+        return list;
+    }
+
     private ListaSimplesNaoOrdenada<Object> convertHeapListToSimpleList(HeapList heapList, Map<Long, HeapEntity> heapMap) {
         ListaSimplesNaoOrdenada<Object> list = new ListaSimplesNaoOrdenada<>();
         System.out.println("Converting HeapList with items count: " + heapList.items.size());
@@ -387,6 +439,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
 
 
+
     private void representListOfLists(HeapList heapList, MyCanvas canvas, Map<Long, HeapEntity> heapMap) {
         // Convert the entire HeapList to a single ListaSimplesNaoOrdenada
         ListaSimplesNaoOrdenada<Object> simpleList = convertHeapListToSimpleList(heapList, heapMap);
@@ -394,7 +447,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         addListofListsRepresentation(simpleList, canvas);
 
 
-        // Iterate over individual lists within the simpleList for reference arrows
+
 
 
         System.out.println("List of lists represented with reference arrows.");
