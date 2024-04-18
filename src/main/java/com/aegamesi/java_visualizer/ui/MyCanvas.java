@@ -6,6 +6,7 @@ import com.aegamesi.java_visualizer.model.*;
 import com.aegamesi.java_visualizer.ui.graphics.Connection;
 import com.aegamesi.java_visualizer.ui.graphics.OutConnector;
 import com.aegamesi.java_visualizer.ui.graphics.PositionalGraphicElement;
+import com.aegamesi.java_visualizer.ui.graphics.StraightConnection;
 import com.aegamesi.java_visualizer.ui.graphics.representations.DefaultRepresentation;
 import com.aegamesi.java_visualizer.ui.graphics.representations.PrimitiveOrEnumRepresentation;
 import com.aegamesi.java_visualizer.ui.graphics.representations.Representation;
@@ -33,6 +34,7 @@ import static com.aegamesi.java_visualizer.model.Value.Type.LONG;
 import static com.aegamesi.java_visualizer.model.Value.Type.STRING;
 
 
+
 public class MyCanvas extends JPanel implements MouseListener, MouseMotionListener {
     private RepresentationWithInConnectors draggedRepresentation = null;
     private Point dragOffset = null;
@@ -52,6 +54,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
     private static final int START_Y = 100;
     private static final int HORIZONTAL_SPACING = 50;
     private static final int VERTICAL_SPACING = 50;
+    private Map<Object, RepresentationWithInConnectors> existingRepresentations = new HashMap<>();
 
 
     public MyCanvas(IDSToolWindow IDSToolWindow) {
@@ -169,7 +172,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         canvas.repaint();
     }*/
 
-    public static void createVisualRepresentations(ExecutionTrace trace, MyCanvas canvas) {
+    public void createVisualRepresentations(ExecutionTrace trace, MyCanvas canvas) {
         System.out.println("Creating visual representations for the trace");
         Map<Long, HeapEntity> heapMap = buildHeapMap(trace);
         canvas.removeAllRepresentations();
@@ -233,9 +236,6 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         return map;
     }
     private static Point calculatePositionForListItem(int index) {
-        // Implement your logic to calculate the position based on the index
-        // For example:
-
         int x = START_X + index * HORIZONTAL_SPACING;
         int y = START_Y + VERTICAL_SPACING;
         return new Point(x, y);
@@ -246,7 +246,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         canvas.repaint();
     }
 
-    private static void determineAndRepresentHeapObject(HeapObject heapObject, MyCanvas canvas, Map<Long, HeapEntity> heapMap) {
+    private void determineAndRepresentHeapObject(HeapObject heapObject, MyCanvas canvas, Map<Long, HeapEntity> heapMap) {
         if (isSimpleList(heapObject)) {
             ListaSimplesNaoOrdenada<?> simpleList = convertHeapObjectToSimpleList(heapObject, heapMap);
             addSimpleListRepresentation(simpleList, canvas);
@@ -262,7 +262,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
     }
 
-    private static void addSimpleListRepresentation(ListaSimplesNaoOrdenada<?> simpleList, MyCanvas canvas) {
+    private void addSimpleListRepresentation(ListaSimplesNaoOrdenada<?> simpleList, MyCanvas canvas) {
         // Logic to create a visual representation for the simple list and add it to the canvas
         // This might involve creating new GraphicElement objects and adding them to the canvas
         int index = 0;
@@ -276,12 +276,37 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
               new UnsortedCircularSimpleLinkedListWithBaseRepresentation(new Point(START_X, START_Y), simpleList, canvas);
          canvas.add(simpleList, representation);
         System.out.println("Lista valores:" + simpleList);
-
+        existingRepresentations.put(simpleList, representation);
+        canvas.representationWithInConnectorsByOwner.put(simpleList, representation);
         refreshCanvas(canvas);
 
     }
+    private void addListofListsRepresentation(ListaSimplesNaoOrdenada<?> simpleList, MyCanvas canvas) {
+        // Logic to create a visual representation for the simple list and add it to the canvas
+        // This might involve creating new GraphicElement objects and adding them to the canvas
 
-    private static void addDoubleListRepresentation(ListaDuplaNaoOrdenada<?> doubleList, MyCanvas canvas) {
+        UnsortedCircularSimpleLinkedListWithBaseRepresentation listRepresentation =
+                new UnsortedCircularSimpleLinkedListWithBaseRepresentation(new Point(START_X, START_Y), simpleList, canvas);
+
+        // Add the list representation to the canvas and to the map
+        canvas.add(simpleList, listRepresentation);
+
+        System.out.println("\n representacoes within connectors:"+representationWithInConnectorsByOwner+" acaba aqui");
+        System.out.println("\n representacoes existentes:"+existingRepresentations+" acaba aqui2");
+
+        for (Object item : simpleList) {
+            RepresentationWithInConnectors sublistRepresentation = canvas.representationWithInConnectorsByOwner.get(item);
+
+        }
+
+        System.out.println("Lista valores:" + simpleList);
+        refreshCanvas(canvas);
+
+
+    }
+
+
+    private void addDoubleListRepresentation(ListaDuplaNaoOrdenada<?> doubleList, MyCanvas canvas) {
         // Logic to create a visual representation for the double list and add it to the canvas
         // This might involve creating new GraphicElement objects and adding them to the canvas
 
@@ -291,7 +316,9 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
     }
 
-    private static ListaDuplaNaoOrdenada<?> convertHeapObjectToDoubleList(HeapObject heapObject,Map<Long, HeapEntity> heapMap) {
+
+
+    private ListaDuplaNaoOrdenada<?> convertHeapObjectToDoubleList(HeapObject heapObject,Map<Long, HeapEntity> heapMap) {
         // Conversion logic from HeapObject to ListaDuplaNaoOrdenada
         // This is just placeholder logic; you need to implement the actual conversion based on your application's needs.
         ListaDuplaNaoOrdenada<?> list = new ListaDuplaNaoOrdenada<>();
@@ -299,7 +326,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         return list;
     }
 
-    private static boolean isListOfLists(HeapList heapList, Map<Long, HeapEntity> heapMap) {
+    private boolean isListOfLists(HeapList heapList, Map<Long, HeapEntity> heapMap) {
         // This method checks if the elements of the HeapList are themselves lists
         for (Value value : heapList.items) {
             if (value.type == Value.Type.REFERENCE) {
@@ -312,8 +339,8 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         return false;
     }
 
-    private static ListaSimplesNaoOrdenada<Object> convertHeapObjectToSimpleList(HeapObject heapObject, Map<Long, HeapEntity> heapMap) {
-        ListaSimplesNaoOrdenada<Object> list = new ListaSimplesNaoOrdenada<>();
+    private ListaSimplesNaoOrdenada<Object> convertHeapObjectToSimpleList(HeapObject heapObject, Map<Long, HeapEntity> heapMap) {
+        ListaSimplesNaoOrdenada<Object> simpleList = new ListaSimplesNaoOrdenada<>(); // No need to return this list
         Value headValue = heapObject.fields.get("head");
 
         while (headValue != null && headValue.type == Value.Type.REFERENCE && headValue.reference != 0) {
@@ -326,31 +353,29 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
             Value dataValue = currentNode.fields.get("data");
             if (dataValue != null) {
                 Object actualData = dataValue.getActualValue(); // Convert Value to actual data
-                list.inserir(actualData);
+                simpleList.inserir(actualData); // Directly add data to the outer list
                 System.out.println("Inserted: " + actualData);
             }
 
             headValue = currentNode.fields.get("next"); // Move to the next node
         }
-
-        return list;
+        return simpleList;
+        // Don't return the list here, modifications are done on the parameter list
     }
-    private static ListaSimplesNaoOrdenada<Object> convertHeapListToSimpleList(HeapList heapList, Map<Long, HeapEntity> heapMap) {
+    private ListaSimplesNaoOrdenada<Object> convertHeapListToSimpleList(HeapList heapList, Map<Long, HeapEntity> heapMap) {
         ListaSimplesNaoOrdenada<Object> list = new ListaSimplesNaoOrdenada<>();
-        System.out.println("Converting HeapList with items count: " + heapList.items.size());  // Debugging output
+        System.out.println("Converting HeapList with items count: " + heapList.items.size());
 
         for (Value value : heapList.items) {
-            System.out.println("Processing Value: " + value);  // Debugging output
+            System.out.println("Processing Value: " + value);
 
             if (value.type == Value.Type.REFERENCE) {
                 HeapEntity entity = heapMap.get(value.reference);
-                System.out.println("Retrieved entity from map: " + entity);  // Debugging output
+                System.out.println("Retrieved entity from map: " + entity);
 
                 if (entity instanceof HeapObject) {
-                    // Convert the referenced HeapObject to a SimpleList and add it as an item in the current list
                     ListaSimplesNaoOrdenada<Object> subList = convertHeapObjectToSimpleList((HeapObject) entity, heapMap);
-                    System.out.println("Converted subList: " + subList);  // Debugging output
-
+                    System.out.println("Converted subList: " + subList);
                     list.inserir(subList);
                 }
             }
@@ -359,28 +384,20 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         System.out.println("Final converted list: " + list);  // Debugging output
         return list;
     }
-    private static ListaSimplesNaoOrdenada<Integer> convertHeapListToLinkedList(HeapList heapList) {
-        ListaSimplesNaoOrdenada<Integer> lista = new ListaSimplesNaoOrdenada<>();
 
-        // This assumes that HeapList holds values as Value objects representing integers
-        for (Value item : heapList.items) {
-            if (item.type == Value.Type.LONG) {
-                lista.inserir((int) item.longValue);
-            }
-            // If your list expects other types, you can add additional checks here
-        }
 
-        return lista;
-    }
 
-    private static void representListOfLists(HeapList heapList, MyCanvas canvas, Map<Long, HeapEntity> heapMap) {
+    private void representListOfLists(HeapList heapList, MyCanvas canvas, Map<Long, HeapEntity> heapMap) {
         // Convert the entire HeapList to a single ListaSimplesNaoOrdenada
         ListaSimplesNaoOrdenada<Object> simpleList = convertHeapListToSimpleList(heapList, heapMap);
-        addSimpleListRepresentation(simpleList, canvas);  // Represent this list as a whole
+        // Represent the entire list of lists
+        addListofListsRepresentation(simpleList, canvas);
 
-        // Optionally, iterate over individual lists if needed for further granular representations
 
-        System.out.println("List of lists represented.");
+        // Iterate over individual lists within the simpleList for reference arrows
+
+
+        System.out.println("List of lists represented with reference arrows.");
     }
 
 
