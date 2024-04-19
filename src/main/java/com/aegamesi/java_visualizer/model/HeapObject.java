@@ -43,6 +43,6 @@ public class HeapObject extends HeapEntity {
 
 
 	public static boolean isDoubleList(HeapObject heapObject) {
-		return heapObject.fields.containsKey("head") && heapObject.fields.containsKey("tail") && heapObject.fields.containsKey("prev");
+		return heapObject.fields.containsKey("base") ;
 	}
 }

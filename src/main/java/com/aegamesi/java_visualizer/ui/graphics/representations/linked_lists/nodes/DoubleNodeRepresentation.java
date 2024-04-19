@@ -11,7 +11,7 @@ import com.aegamesi.java_visualizer.utils.Utils;
 import javax.swing.*;
 import java.awt.*;
 
-public class DoubleNodeRepresentation <TNode,T> extends  NodeRepresentation {
+public class DoubleNodeRepresentation <TNode> extends  NodeRepresentation {
     private static final long serialVersionUID = 1L;
 
     private FieldReference previousFieldReference;
@@ -42,7 +42,10 @@ public class DoubleNodeRepresentation <TNode,T> extends  NodeRepresentation {
             containerWithInConnectors.computeInConnectors();
 
         } catch (Exception e) {
+            e.printStackTrace();
+
             JOptionPane.showMessageDialog(null, "Erro ao Criar Representação de Nó Duplo.");
+
         }
     }
 

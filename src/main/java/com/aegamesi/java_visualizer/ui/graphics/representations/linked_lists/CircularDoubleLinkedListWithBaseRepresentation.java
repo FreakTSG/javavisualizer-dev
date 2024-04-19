@@ -49,7 +49,6 @@ public abstract class CircularDoubleLinkedListWithBaseRepresentation<TLinkedList
     }
 
     protected void createComparatorReference(){
-
     };
 
 
