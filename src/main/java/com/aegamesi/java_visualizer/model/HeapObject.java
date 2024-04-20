@@ -37,12 +37,13 @@ public class HeapObject extends HeapEntity {
 	}
 
 	public static boolean isSimpleList(HeapObject heapObject) {
-
 		return heapObject.fields.containsKey("base") && heapObject.fields.containsKey("noFinal");
 	}
-
-
 	public static boolean isDoubleList(HeapObject heapObject) {
 		return heapObject.fields.containsKey("base") ;
+	}
+
+	public static boolean isSortedSimpleList(HeapObject heapObject) {
+		return heapObject.fields.containsKey("base") && heapObject.fields.containsKey("criterio");
 	}
 }

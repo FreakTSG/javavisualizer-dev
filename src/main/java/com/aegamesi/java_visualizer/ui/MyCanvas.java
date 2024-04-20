@@ -2,6 +2,8 @@ package com.aegamesi.java_visualizer.ui;
 
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.naoordenadas.estruturas.ListaDuplaNaoOrdenada;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.naoordenadas.estruturas.ListaSimplesNaoOrdenada;
+import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.ordenadas.estruturas.ListaDuplaOrdenada;
+import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.ordenadas.estruturas.ListaSimplesOrdenada;
 import com.aegamesi.java_visualizer.model.*;
 import com.aegamesi.java_visualizer.ui.graphics.Connection;
 import com.aegamesi.java_visualizer.ui.graphics.OutConnector;
@@ -11,10 +13,13 @@ import com.aegamesi.java_visualizer.ui.graphics.representations.DefaultRepresent
 import com.aegamesi.java_visualizer.ui.graphics.representations.PrimitiveOrEnumRepresentation;
 import com.aegamesi.java_visualizer.ui.graphics.representations.Representation;
 import com.aegamesi.java_visualizer.ui.graphics.representations.RepresentationWithInConnectors;
+import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.SortedCircularSimpleLinkedListAlsoWithBaseRepresentation;
+import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.SortedCircularSimpleLinkedListWithBaseMaxOrderRepresentation;
 import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.UnsortedCircularDoubleLinkedListWithBaseRepresentation;
 import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.UnsortedCircularSimpleLinkedListWithBaseRepresentation;
 import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.nodes.DoubleNodeRepresentation;
 import com.aegamesi.java_visualizer.utils.Vetor2D;
+import com.aegamesi.java_visualizer.aed.Comparacao;
 
 import javax.swing.*;
 
@@ -26,8 +31,7 @@ import java.awt.geom.AffineTransform;
 import java.util.*;
 
 
-import static com.aegamesi.java_visualizer.model.HeapObject.isDoubleList;
-import static com.aegamesi.java_visualizer.model.HeapObject.isSimpleList;
+import static com.aegamesi.java_visualizer.model.HeapObject.*;
 import static com.aegamesi.java_visualizer.model.Value.Type.LONG;
 import static com.aegamesi.java_visualizer.model.Value.Type.STRING;
 import static com.aegamesi.java_visualizer.ui.IDSToolWindow.myCanvas;
@@ -232,6 +236,23 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                    addDoubleListRepresentation(doubleList, canvas);
                }
 
+                Comparacao<Object> comparator = (o1, o2) -> {
+                    if (o1.getClass() == o2.getClass() && o1 instanceof Comparable) {
+                        return ((Comparable) o1).compareTo(o2);
+                    }
+                    throw new IllegalArgumentException("Unsupported object types for comparison");
+                };
+                if (HeapObject.label.contains("org.example.aed.Comparacao")) {
+                    System.out.println("Comparator found: " + comparator);
+                }
+
+               if(isSortedSimpleList(HeapObject)) {
+
+                   System.out.println("Entrei na lista dupla ordenada");
+                   ListaSimplesOrdenada<Object> simpleSortedList = convertHeapObjectToSortedSimpleList(HeapObject, heapMap, comparator);
+                   System.out.println("Double list converted "+simpleSortedList);
+                   addSortedSimpleListRepresentation(simpleSortedList, canvas);
+               }
 
                 //determineAndRepresentHeapObject(heapObject, canvas,heapMap);
             }
@@ -330,12 +351,10 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         UnsortedCircularDoubleLinkedListWithBaseRepresentation representation =
                 new UnsortedCircularDoubleLinkedListWithBaseRepresentation(new Point(START_X, START_Y), doubleList, canvas);
         canvas.add(doubleList, representation);
-        // Traverse the doubleList and create representations for each element
+
         int index = 0;
         for (Object item : doubleList) {
             Point position = calculatePositionForListItem(index);
-            //DoubleNodeRepresentation nodeRepresentation = new DoubleNodeRepresentation(position, item, canvas);
-            //canvas.add(item, nodeRepresentation);
             PrimitiveOrEnumRepresentation itemRepresentation = new PrimitiveOrEnumRepresentation(position, item, canvas);
             canvas.add(item, itemRepresentation);
             index++;
@@ -354,6 +373,59 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
     }
 
 
+    private void addSortedSimpleListRepresentation(ListaSimplesOrdenada<?> simpleList, MyCanvas canvas) {
+        // Logic to create a visual representation for the double list and add it to the canvas
+
+
+
+        // Traverse the doubleList and create representations for each element
+        int index = 0;
+        for (Object item : simpleList) {
+            Point position = calculatePositionForListItem(index);
+            //DoubleNodeRepresentation nodeRepresentation = new DoubleNodeRepresentation(position, item, canvas);
+            //canvas.add(item, nodeRepresentation);
+            PrimitiveOrEnumRepresentation itemRepresentation = new PrimitiveOrEnumRepresentation(position, item, canvas);
+            canvas.add(item, itemRepresentation);
+            index++;
+
+        }
+        SortedCircularSimpleLinkedListWithBaseMaxOrderRepresentation sortedSingleList =
+                new SortedCircularSimpleLinkedListWithBaseMaxOrderRepresentation(new Point(30, 400), simpleList, canvas); // Adjust the position as needed
+        canvas.add(simpleList, sortedSingleList);
+        System.out.println("Lista valores:" + simpleList);
+        existingRepresentations.put(simpleList, sortedSingleList);
+        canvas.representationWithInConnectorsByOwner.put(simpleList, sortedSingleList);
+        refreshCanvas(canvas);
+    }
+    private ListaSimplesOrdenada<Object> convertHeapObjectToSortedSimpleList(HeapObject heapObject, Map<Long, HeapEntity> heapMap, Comparacao<Object> comparator) {
+        if (comparator == null) {
+            throw new IllegalArgumentException("Comparator must not be null.");
+        }
+        ListaSimplesOrdenada<Object> sortedSingleList = new ListaSimplesOrdenada<>(comparator);
+        Long baseRef = heapObject.fields.get("base").reference;
+        HeapObject currentNode = (HeapObject) heapMap.get(baseRef);
+
+        if (currentNode == null) {
+            System.out.println("Sentinel node is null.");
+            return sortedSingleList;
+        }
+
+        Long currentNodeRef = currentNode.fields.get("seguinte").reference;
+
+        while (currentNodeRef != null && !currentNodeRef.equals(baseRef)) {
+            currentNode = (HeapObject) heapMap.get(currentNodeRef);
+            if (currentNode == null) {
+                break;
+            }
+            Object element = currentNode.fields.get("elemento").getActualValue();
+            sortedSingleList.inserir(element);
+            currentNodeRef = currentNode.fields.get("seguinte").reference;
+        }
+
+        return sortedSingleList;
+    }
+
+
 
     private ListaDuplaNaoOrdenada<?> convertHeapObjectToDoubleList(HeapObject heapObject, Map<Long, HeapEntity> heapMap) {
         ListaDuplaNaoOrdenada<Object> doubleList = new ListaDuplaNaoOrdenada<>();
@@ -367,14 +439,14 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
             return doubleList;
         }
 
-        // Retrieve reference to the first actual node after the sentinel
+
         Long currentNodeRef = currentNode.fields.get("seguinte").reference;
 
-        // Traverse the nodes and populate the double list
-        while (currentNodeRef != null && !currentNodeRef.equals(baseRef)) { // Stop when we get back to the sentinel node
+
+        while (currentNodeRef != null && !currentNodeRef.equals(baseRef)) {
             currentNode = (HeapObject) heapMap.get(currentNodeRef);
             if (currentNode == null) {
-                break; // Safety check to avoid infinite loop in case of a broken link
+                break;
             }
             Object element = currentNode.fields.get("elemento").getActualValue();
             doubleList.inserirNoFim(element);
