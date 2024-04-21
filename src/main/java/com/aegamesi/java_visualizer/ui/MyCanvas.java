@@ -20,6 +20,7 @@ import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.Uns
 import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.nodes.DoubleNodeRepresentation;
 import com.aegamesi.java_visualizer.utils.Vetor2D;
 import com.aegamesi.java_visualizer.aed.Comparacao;
+import ui.graphics.representations.linked_lists.SortedCircularDoubleLinkedListWithBaseMaxOrderRepresentation;
 
 import javax.swing.*;
 
@@ -246,12 +247,19 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                     System.out.println("Comparator found: " + comparator);
                 }
 
-               if(isSortedSimpleList(HeapObject)) {
+               if(isSortedSimpleList(HeapObject, heapMap)){
 
-                   System.out.println("Entrei na lista dupla ordenada");
+                   System.out.println("Entrei na lista Simples ordenada");
                    ListaSimplesOrdenada<Object> simpleSortedList = convertHeapObjectToSortedSimpleList(HeapObject, heapMap, comparator);
                    System.out.println("Double list converted "+simpleSortedList);
                    addSortedSimpleListRepresentation(simpleSortedList, canvas);
+               }
+               if (isSortedDoubleList(HeapObject, heapMap)){
+                   System.out.println("Entrei na lista Dupla ordenada");
+                   ListaDuplaOrdenada<Object> doubleSortedList = convertHeapObjectToSortedDoubleList(HeapObject, heapMap, comparator);
+                   System.out.println("Double list converted "+doubleSortedList);
+                   addSortedDoubleListRepresentation(doubleSortedList, canvas);
+
                }
 
                 //determineAndRepresentHeapObject(heapObject, canvas,heapMap);
@@ -265,6 +273,28 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
             System.out.println("Representations lista added to canvas: " + canvas.representationWithInConnectorsByOwner.size());
         }
         refreshCanvas(canvas);
+    }
+
+    public static boolean isSortedSimpleList(HeapObject heapObject, Map<Long, HeapEntity> heapMap) {
+        if (heapObject.fields.containsKey("base") && heapObject.fields.containsKey("criterio")) {
+            HeapObject baseNode = (HeapObject) heapMap.get(heapObject.fields.get("base").reference);
+            // It has 'anterior' field, which might suggest it is a double list (ListaDuplaOrdenada)
+            return baseNode == null || !baseNode.fields.containsKey("anterior");
+            // If it doesn't have 'anterior', it's a simple sorted list (ListaSimplesOrdenada)
+        }
+        // If it doesn't have 'base' or 'criterio', it's not a sorted list
+        return false;
+    }
+
+    public static boolean isSortedDoubleList(HeapObject heapObject, Map<Long, HeapEntity> heapMap) {
+        if (heapObject.fields.containsKey("base") && heapObject.fields.containsKey("criterio")) {
+            HeapObject baseNode = (HeapObject) heapMap.get(heapObject.fields.get("base").reference);
+            // It has 'anterior' field, which might suggest it is a double list (ListaDuplaOrdenada)
+            return baseNode != null && baseNode.fields.containsKey("anterior");
+            // If it doesn't have 'anterior', it's a simple sorted list (ListaSimplesOrdenada)
+        }
+        // If it doesn't have 'base' or 'criterio', it's not a sorted list
+        return false;
     }
     private static Map<Long, HeapEntity> buildHeapMap(ExecutionTrace trace) {
         Map<Long, HeapEntity> map = new HashMap<>();
@@ -375,9 +405,6 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
     private void addSortedSimpleListRepresentation(ListaSimplesOrdenada<?> simpleList, MyCanvas canvas) {
         // Logic to create a visual representation for the double list and add it to the canvas
-
-
-
         // Traverse the doubleList and create representations for each element
         int index = 0;
         for (Object item : simpleList) {
@@ -390,11 +417,32 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
         }
         SortedCircularSimpleLinkedListWithBaseMaxOrderRepresentation sortedSingleList =
-                new SortedCircularSimpleLinkedListWithBaseMaxOrderRepresentation(new Point(30, 400), simpleList, canvas); // Adjust the position as needed
+                new SortedCircularSimpleLinkedListWithBaseMaxOrderRepresentation(new Point(0, 0), simpleList, canvas); // Adjust the position as needed
         canvas.add(simpleList, sortedSingleList);
         System.out.println("Lista valores:" + simpleList);
         existingRepresentations.put(simpleList, sortedSingleList);
         canvas.representationWithInConnectorsByOwner.put(simpleList, sortedSingleList);
+        refreshCanvas(canvas);
+    }
+
+    private void addSortedDoubleListRepresentation(ListaDuplaOrdenada<?> doubleList, MyCanvas canvas) {
+        // Logic to create a visual representation for the double list and add it to the canvas
+        // Traverse the doubleList and create representations for each element
+        int index = 0;
+        for (Object item : doubleList) {
+            Point position = calculatePositionForListItem(index);
+            PrimitiveOrEnumRepresentation itemRepresentation = new PrimitiveOrEnumRepresentation(position, item, canvas);
+            canvas.add(item, itemRepresentation);
+            index++;
+
+        }
+        ui.graphics.representations.linked_lists.SortedCircularDoubleLinkedListWithBaseMaxOrderRepresentation sortedDoubleList =
+                new SortedCircularDoubleLinkedListWithBaseMaxOrderRepresentation(new Point(0, 0), doubleList, canvas); // Adjust the position as needed
+        canvas.add(doubleList, sortedDoubleList);
+        sortedDoubleList.update();
+        System.out.println("Lista valores:" + doubleList);
+        existingRepresentations.put(doubleList, sortedDoubleList);
+        canvas.representationWithInConnectorsByOwner.put(doubleList, sortedDoubleList);
         refreshCanvas(canvas);
     }
     private ListaSimplesOrdenada<Object> convertHeapObjectToSortedSimpleList(HeapObject heapObject, Map<Long, HeapEntity> heapMap, Comparacao<Object> comparator) {
@@ -423,6 +471,35 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         }
 
         return sortedSingleList;
+    }
+
+    private ListaDuplaOrdenada<Object> convertHeapObjectToSortedDoubleList(HeapObject heapObject, Map<Long, HeapEntity> heapMap, Comparacao<Object> comparator) {
+        if (comparator == null) {
+            throw new IllegalArgumentException("Comparator must not be null.");
+        }
+        ListaDuplaOrdenada<Object> sortedDoubleList = new ListaDuplaOrdenada<>(comparator);
+        Long baseRef = heapObject.fields.get("base").reference;
+        HeapObject currentNode = (HeapObject) heapMap.get(baseRef);
+
+        if (currentNode == null) {
+            System.out.println("Sentinel node is null.");
+            return sortedDoubleList;
+        }
+
+        Long currentNodeRef = currentNode.fields.get("seguinte").reference;
+
+
+        while (currentNodeRef != null && !currentNodeRef.equals(baseRef)) {
+            currentNode = (HeapObject) heapMap.get(currentNodeRef);
+            if (currentNode == null) {
+                break;
+            }
+            Object element = currentNode.fields.get("elemento").getActualValue();
+            sortedDoubleList.inserir(element);
+            currentNodeRef = currentNode.fields.get("seguinte").reference;
+        }
+
+        return sortedDoubleList;
     }
 
 

@@ -43,7 +43,5 @@ public class HeapObject extends HeapEntity {
 		return heapObject.fields.containsKey("base") ;
 	}
 
-	public static boolean isSortedSimpleList(HeapObject heapObject) {
-		return heapObject.fields.containsKey("base") && heapObject.fields.containsKey("criterio");
-	}
+
 }
