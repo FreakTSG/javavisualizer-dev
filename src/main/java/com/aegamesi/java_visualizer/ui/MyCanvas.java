@@ -99,76 +99,6 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         repaint();
     }
 
-    /*public static void createVisualRepresentations(ExecutionTrace trace, MyCanvas canvas) {
-        for (HeapEntity entity : trace.heap.values()) {
-            // Check if the entity is a linked list and create the corresponding representation
-            System.out.println("What is going on here: " + entity.getClass().getName() + "\n");
-            System.out.println("What is going on here: " + HeapList.class.getName() + "\n");
-            if (entity instanceof HeapList) {
-                HeapList heapList = (HeapList) entity;
-
-
-                ListaSimplesNaoOrdenada<?> lista = convertHeapListToLinkedList(heapList);
-
-                // The below assumes you have a constructor for UnsortedCircularSimpleLinkedListWithBaseRepresentation
-                // that takes these parameters.
-
-                UnsortedCircularSimpleLinkedListWithBaseRepresentation listRepresentation =
-                        new UnsortedCircularSimpleLinkedListWithBaseRepresentation(
-                                new Point(30, 30), // Adjust position as needed
-                                lista, // You might need to cast or transform this
-                                canvas
-                        );
-
-
-                // Update the representation with any specific details, such as the iterator's position
-                // Assuming you have such a method on your representation class
-
-                listRepresentation.updateIteratorPosition(-1); // Set iterator position if needed
-
-
-                canvas.add(heapList, listRepresentation);
-
-            } else if (entity instanceof HeapObject) {
-                HeapObject heapList = (HeapObject) entity;
-
-
-                ListaDuplaNaoOrdenada<?> lista2 = convertHeapListToDoubleLinkedList(heapList);
-
-                // The below assumes you have a constructor for UnsortedCircularSimpleLinkedListWithBaseRepresentation
-                // that takes these parameters.
-
-                UnsortedCircularDoubleLinkedListWithBaseRepresentation listRepresentation2 =
-                        new UnsortedCircularDoubleLinkedListWithBaseRepresentation(
-                                new Point(30, 30), // Adjust position as needed
-                                lista2, // You might need to cast or transform this
-                                canvas
-                        );
-
-                // Update the representation with any specific details, such as the iterator's position
-                // Assuming you have such a method on your representation class
-
-                listRepresentation2.updateIteratorPosition(-1);
-
-                canvas.add(heapList, listRepresentation2);
-
-                System.out.println("What is going on here: " + lista2 + "\n");
-            }
-            // Add similar logic for other types of HeapEntities (if any)
-        }
-
-        if (canvas.representationWithInConnectorsByOwner.isEmpty()) {
-            System.out.println("No representations have been added to the canvas.");
-        } else {
-            System.out.println("Representations added to canvas: " + canvas.representationWithInConnectorsByOwner.size());
-        }
-        canvas.repaint();
-
-
-        // Refresh canvas to display the new visual elements
-        canvas.revalidate();
-        canvas.repaint();
-    }*/
 
     public void createVisualRepresentations(ExecutionTrace trace, MyCanvas canvas) {
         System.out.println("Creating visual representations for the trace");
@@ -211,21 +141,20 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
             } else if (entity instanceof HeapObject ) {
                 HeapObject HeapObject = (HeapObject) entity;
 
-                System.out.println("Entrei nos heapObjects");
-
-                System.out.println("heapobject fields: "+HeapObject.fields+" acaba aqui");
-                System.out.println("heapobject id: "+HeapObject.id+" acaba aqui");
-                System.out.println("heapobject type: "+HeapObject.type+" acaba aqui");
-                System.out.println("heapobject label: "+HeapObject.label+" acaba aqui");
-                System.out.println("heapobject class: "+HeapObject.getClass()+" acaba aqui");
+               // System.out.println("Entrei nos heapObjects");
+//
+               // System.out.println("heapobject fields: "+HeapObject.fields+" acaba aqui");
+               // System.out.println("heapobject id: "+HeapObject.id+" acaba aqui");
+               // System.out.println("heapobject type: "+HeapObject.type+" acaba aqui");
+               // System.out.println("heapobject label: "+HeapObject.label+" acaba aqui");
+               // System.out.println("heapobject class: "+HeapObject.getClass()+" acaba aqui");
                 if(isSimpleList(HeapObject)){
                     System.out.println("Entrei na lista simples nao ordenada");
                     ListaSimplesNaoOrdenada<?> simpleList=convertHeapObjectToListofLists(HeapObject, heapMap);
                     System.out.println("Simple list converted "+simpleList);
                     addSimpleListRepresentation(simpleList, canvas);
-
                 }
-               if(HeapObject.label.equals("org.example.aed.colecoes.iteraveis.lineares.naoordenadas.estruturas.ListaDuplaNaoOrdenada")){
+               if(HeapObject.label.contains("ListaDuplaNaoOrdenada")){
                    System.out.println("Entrei na lista dupla nao ordenada");
                    ListaDuplaNaoOrdenada<?> doubleList=convertHeapObjectToDoubleList(HeapObject, heapMap);
                    System.out.println("Double list converted "+doubleList);
@@ -327,9 +256,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
     private void addDoubleListRepresentation(ListaDuplaNaoOrdenada<?> doubleList, MyCanvas canvas) {
         // Logic to create a visual representation for the double list and add it to the canvas
 
-        UnsortedCircularDoubleLinkedListWithBaseRepresentation representation =
-                new UnsortedCircularDoubleLinkedListWithBaseRepresentation(new Point(START_X, START_Y), doubleList, canvas);
-        canvas.add(doubleList, representation);
+
         // Traverse the doubleList and create representations for each element
         int index = 0;
         for (Object item : doubleList) {
@@ -340,9 +267,13 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
             canvas.add(item, itemRepresentation);
             index++;
             // Possibly add the node to a visual representation of the list itself, if needed
-            representation.add(itemRepresentation);
+            //representation.add(itemRepresentation);
         }
+        UnsortedCircularDoubleLinkedListWithBaseRepresentation representation =
+                new UnsortedCircularDoubleLinkedListWithBaseRepresentation(new Point(START_X, START_Y), doubleList, canvas);
 
+        canvas.add(doubleList, representation);
+        representation.update();
         System.out.println("Lista valores:" + doubleList);
         existingRepresentations.put(doubleList, representation);
         canvas.representationWithInConnectorsByOwner.put(doubleList, representation);
@@ -367,17 +298,17 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
             return doubleList;
         }
 
-        // Retrieve reference to the first actual node after the sentinel
+
         Long currentNodeRef = currentNode.fields.get("seguinte").reference;
 
-        // Traverse the nodes and populate the double list
-        while (currentNodeRef != null && !currentNodeRef.equals(baseRef)) { // Stop when we get back to the sentinel node
+
+        while (currentNodeRef != null && !currentNodeRef.equals(baseRef)) {
             currentNode = (HeapObject) heapMap.get(currentNodeRef);
             if (currentNode == null) {
-                break; // Safety check to avoid infinite loop in case of a broken link
+                break;
             }
             Object element = currentNode.fields.get("elemento").getActualValue();
-            doubleList.inserirNoFim(element);
+            doubleList.inserir(element);
             currentNodeRef = currentNode.fields.get("seguinte").reference;
         }
 
@@ -454,7 +385,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                 // It's a direct value, add it to the current list
                 Object actualData = dataValue.getActualValue();
                 if (actualData != null) {
-                    list.inserirNoInicio(actualData);
+                    list.inserir(actualData);
                 }
             }
 
