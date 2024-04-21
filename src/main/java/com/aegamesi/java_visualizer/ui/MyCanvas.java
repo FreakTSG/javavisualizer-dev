@@ -603,7 +603,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                 // It's a direct value, add it to the current list
                 Object actualData = dataValue.getActualValue();
                 if (actualData != null) {
-                    list.inserirNoInicio(actualData);
+                    list.inserir(actualData);
                 }
             }
 
