@@ -364,7 +364,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
             index++;
 
         }
-        ui.graphics.representations.linked_lists.SortedCircularDoubleLinkedListWithBaseMaxOrderRepresentation sortedDoubleList =
+        SortedCircularDoubleLinkedListWithBaseMaxOrderRepresentation sortedDoubleList =
                 new SortedCircularDoubleLinkedListWithBaseMaxOrderRepresentation(new Point(0, 0), doubleList, canvas); // Adjust the position as needed
         canvas.add(doubleList, sortedDoubleList);
         sortedDoubleList.update();
