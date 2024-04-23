@@ -9,6 +9,7 @@ import com.aegamesi.java_visualizer.ui.graphics.Connection;
 import com.aegamesi.java_visualizer.ui.graphics.OutConnector;
 import com.aegamesi.java_visualizer.ui.graphics.PositionalGraphicElement;
 import com.aegamesi.java_visualizer.ui.graphics.StraightConnection;
+import com.aegamesi.java_visualizer.ui.graphics.aggregations.Reference;
 import com.aegamesi.java_visualizer.ui.graphics.representations.DefaultRepresentation;
 import com.aegamesi.java_visualizer.ui.graphics.representations.PrimitiveOrEnumRepresentation;
 import com.aegamesi.java_visualizer.ui.graphics.representations.Representation;
@@ -146,13 +147,13 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
             } else if (entity instanceof HeapObject ) {
                 HeapObject HeapObject = (HeapObject) entity;
 
-               // System.out.println("Entrei nos heapObjects");
+                System.out.println("Entrei nos heapObjects");
 //
-               // System.out.println("heapobject fields: "+HeapObject.fields+" acaba aqui");
-               // System.out.println("heapobject id: "+HeapObject.id+" acaba aqui");
-               // System.out.println("heapobject type: "+HeapObject.type+" acaba aqui");
-               // System.out.println("heapobject label: "+HeapObject.label+" acaba aqui");
-               // System.out.println("heapobject class: "+HeapObject.getClass()+" acaba aqui");
+                System.out.println("heapobject fields: "+HeapObject.fields+" acaba aqui");
+                System.out.println("heapobject id: "+HeapObject.id+" acaba aqui");
+                System.out.println("heapobject type: "+HeapObject.type+" acaba aqui");
+                System.out.println("heapobject label: "+HeapObject.label+" acaba aqui");
+                System.out.println("heapobject class: "+HeapObject.getClass()+" acaba aqui");
                 if(isSimpleList(HeapObject)){
                     System.out.println("Entrei na lista simples nao ordenada");
                     ListaSimplesNaoOrdenada<?> simpleList=convertHeapObjectToListofLists(HeapObject, heapMap);
@@ -289,9 +290,28 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         int index = 0;
         for (Object item : simpleList) {
             Point position = calculatePositionForListItem(index);
-            PrimitiveOrEnumRepresentation itemRepresentation = new PrimitiveOrEnumRepresentation(position, item, canvas);
-            canvas.add(item, itemRepresentation);
-            index++;
+
+            if (item instanceof ListaSimplesNaoOrdenada<?>) {
+                System.out.println("Item is a ListaSimplesOrdenada");
+                //add here representation for the list inside the list
+                UnsortedCircularSimpleLinkedListWithBaseRepresentation nestedListRepresentation =
+                        new UnsortedCircularSimpleLinkedListWithBaseRepresentation(position, (ListaSimplesNaoOrdenada<?>)item, canvas);
+                nestedListRepresentation.update();
+                canvas.add(item, nestedListRepresentation);
+                System.out.println("Lista de lista valores:" + item);
+                refreshCanvas(canvas);
+            }
+            else {
+                System.out.println("Item is a primitive or enum");
+                PrimitiveOrEnumRepresentation itemRepresentation = new PrimitiveOrEnumRepresentation(position, item, canvas);
+                canvas.add(item, itemRepresentation);
+                index++;
+                System.out.println(" valores NORMAIS :" + item);
+                refreshCanvas(canvas);
+
+            }
+
+
         }
         UnsortedCircularSimpleLinkedListWithBaseRepresentation representation =
                 new UnsortedCircularSimpleLinkedListWithBaseRepresentation(new Point(START_X, START_Y), simpleList, canvas);
@@ -299,6 +319,8 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         System.out.println("Lista valores:" + simpleList);
         existingRepresentations.put(simpleList, representation);
         canvas.representationWithInConnectorsByOwner.put(simpleList, representation);
+
+
         refreshCanvas(canvas);
 
     }
@@ -337,8 +359,6 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         int index = 0;
         for (Object item : simpleList) {
             Point position = calculatePositionForListItem(index);
-            //DoubleNodeRepresentation nodeRepresentation = new DoubleNodeRepresentation(position, item, canvas);
-            //canvas.add(item, nodeRepresentation);
             PrimitiveOrEnumRepresentation itemRepresentation = new PrimitiveOrEnumRepresentation(position, item, canvas);
             canvas.add(item, itemRepresentation);
             index++;
@@ -356,13 +376,12 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
     private void addSortedDoubleListRepresentation(ListaDuplaOrdenada<?> doubleList, MyCanvas canvas) {
         // Logic to create a visual representation for the double list and add it to the canvas
         // Traverse the doubleList and create representations for each element
-        int index = 0;
+        int index = 1;
         for (Object item : doubleList) {
             Point position = calculatePositionForListItem(index);
             PrimitiveOrEnumRepresentation itemRepresentation = new PrimitiveOrEnumRepresentation(position, item, canvas);
             canvas.add(item, itemRepresentation);
             index++;
-
         }
         SortedCircularDoubleLinkedListWithBaseMaxOrderRepresentation sortedDoubleList =
                 new SortedCircularDoubleLinkedListWithBaseMaxOrderRepresentation(new Point(0, 0), doubleList, canvas); // Adjust the position as needed
@@ -540,28 +559,28 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         return list;
     }
 
-    private ListaSimplesNaoOrdenada<Object> convertHeapListToSimpleList(HeapList heapList, Map<Long, HeapEntity> heapMap) {
-        ListaSimplesNaoOrdenada<Object> list = new ListaSimplesNaoOrdenada<>();
-        System.out.println("Converting HeapList with items count: " + heapList.items.size());
+  // private ListaSimplesNaoOrdenada<Object> convertHeapListToSimpleList(HeapList heapList, Map<Long, HeapEntity> heapMap) {
+  //     ListaSimplesNaoOrdenada<Object> list = new ListaSimplesNaoOrdenada<>();
+  //     System.out.println("Converting HeapList with items count: " + heapList.items.size());
 
-        for (Value value : heapList.items) {
-            System.out.println("Processing Value: " + value);
+  //     for (Value value : heapList.items) {
+  //         System.out.println("Processing Value: " + value);
 
-            if (value.type == Value.Type.REFERENCE) {
-                HeapEntity entity = heapMap.get(value.reference);
-                System.out.println("Retrieved entity from map: " + entity);
+  //         if (value.type == Value.Type.REFERENCE) {
+  //             HeapEntity entity = heapMap.get(value.reference);
+  //             System.out.println("Retrieved entity from map: " + entity);
 
-                if (entity instanceof HeapObject) {
-                    ListaSimplesNaoOrdenada<Object> subList = convertHeapObjectToSimpleList((HeapObject) entity, heapMap);
-                    System.out.println("Converted subList: " + subList);
-                    list.inserir(subList);
-                }
-            }
-        }
+  //             if (entity instanceof HeapObject) {
+  //                 ListaSimplesNaoOrdenada<Object> subList = convertHeapObjectToSimpleList((HeapObject) entity, heapMap);
+  //                 System.out.println("Converted subList: " + subList);
+  //                 list.inserir(subList);
+  //             }
+  //         }
+  //     }
 
-        System.out.println("Final converted list: " + list);  // Debugging output
-        return list;
-    }
+  //     System.out.println("Final converted list: " + list);  // Debugging output
+  //     return list;
+  // }
 
 
 
