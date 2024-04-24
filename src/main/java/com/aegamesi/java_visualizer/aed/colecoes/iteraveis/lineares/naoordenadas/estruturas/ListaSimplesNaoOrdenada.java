@@ -5,6 +5,9 @@ import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.IteradorIteravel;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.naoordenadas.ColecaoIteravelLinearNaoOrdenada;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.NoSuchElementException;
 
 /**
@@ -54,6 +57,46 @@ public class ListaSimplesNaoOrdenada<T> implements ColecaoIteravelLinearNaoOrden
         }
 
         return ant;
+    }
+    public List<T> toList() {
+        List<T> list = new ArrayList<>();
+        No aux = base.seguinte;
+        while (aux != base) { // Assuming 'base' is your sentinel node that marks the beginning and end
+            list.add(aux.elemento);
+            aux = aux.seguinte;
+        }
+        return list;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ListaSimplesNaoOrdenada)) return false;
+        ListaSimplesNaoOrdenada<?> that = (ListaSimplesNaoOrdenada<?>) o;
+        if (this.numeroElementos != that.numeroElementos) return false;
+
+        No thisCurrent = this.base.seguinte;
+        No thatCurrent = (No) that.base.seguinte;
+
+        while (thisCurrent != base && thatCurrent != that.base) {
+            if (!Objects.equals(thisCurrent.elemento, thatCurrent.elemento)) {
+                return false;
+            }
+            thisCurrent = thisCurrent.seguinte;
+            thatCurrent = thatCurrent.seguinte;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hashCode(base);
+        No current = base.seguinte;
+        while (current != base) {
+            result = 31 * result + (current.elemento != null ? current.elemento.hashCode() : 0);
+            current = current.seguinte;
+        }
+        return result;
     }
 
     protected No getNoAnteriorPorIndice(int indice) {

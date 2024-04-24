@@ -285,32 +285,38 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
   // }
 
     private void addSimpleListRepresentation(ListaSimplesNaoOrdenada<?> simpleList, MyCanvas canvas) {
-        // Logic to create a visual representation for the simple list and add it to the canvas
-        // This might involve creating new GraphicElement objects and adding them to the canvas
         int index = 0;
         for (Object item : simpleList) {
             Point position = calculatePositionForListItem(index);
 
             if (item instanceof ListaSimplesNaoOrdenada<?>) {
-                System.out.println("Item is a ListaSimplesOrdenada");
-                //add here representation for the list inside the list
-                UnsortedCircularSimpleLinkedListWithBaseRepresentation nestedListRepresentation =
-                        new UnsortedCircularSimpleLinkedListWithBaseRepresentation(position, (ListaSimplesNaoOrdenada<?>)item, canvas);
-                nestedListRepresentation.update();
-                canvas.add(item, nestedListRepresentation);
-                System.out.println("Lista de lista valores:" + item);
-                refreshCanvas(canvas);
-            }
-            else {
-                System.out.println("Item is a primitive or enum");
+                // Check if representation already exists
+
+                RepresentationWithInConnectors existingRepresentation = findRepresentationForList((ListaSimplesNaoOrdenada<?>) item);
+                System.out.println("What is going on here keyset: "+existingRepresentations.keySet());
+                System.out.println("What is going on here get(item): "+existingRepresentations.get(item));
+                System.out.println("What is going on here: item "+item);
+                System.out.println("What is going on here: containskey(item) "+existingRepresentations.containsKey(item));
+                if (existingRepresentation != null) {
+                    // Connect to existing representation
+                    canvas.add(item, existingRepresentation);
+                } else {
+                    System.out.println("Existing Representation is null\n\n");
+                    // Create new representation
+                    UnsortedCircularSimpleLinkedListWithBaseRepresentation nestedListRepresentation =
+                            new UnsortedCircularSimpleLinkedListWithBaseRepresentation(position, (ListaSimplesNaoOrdenada<?>) item, canvas);
+                    //nestedListRepresentation.update();
+                    canvas.add(item, nestedListRepresentation);
+                    existingRepresentations.put(item, nestedListRepresentation);
+
+                }
+            } else {
                 PrimitiveOrEnumRepresentation itemRepresentation = new PrimitiveOrEnumRepresentation(position, item, canvas);
                 canvas.add(item, itemRepresentation);
-                index++;
-                System.out.println(" valores NORMAIS :" + item);
-                refreshCanvas(canvas);
+
 
             }
-
+            index++;
 
         }
         UnsortedCircularSimpleLinkedListWithBaseRepresentation representation =
@@ -319,10 +325,19 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         System.out.println("Lista valores:" + simpleList);
         existingRepresentations.put(simpleList, representation);
         canvas.representationWithInConnectorsByOwner.put(simpleList, representation);
-
-
         refreshCanvas(canvas);
 
+
+
+    }
+
+    private RepresentationWithInConnectors findRepresentationForList(ListaSimplesNaoOrdenada<?> list) {
+        for (Map.Entry<Object, RepresentationWithInConnectors> entry : existingRepresentations.entrySet()) {
+            if (entry.getKey() instanceof ListaSimplesNaoOrdenada<?> && list.equals(entry.getKey())) {
+                return entry.getValue();
+            }
+        }
+        return null;
     }
 
 
@@ -345,6 +360,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         System.out.println("Lista valores:" + doubleList);
         existingRepresentations.put(doubleList, representation);
         canvas.representationWithInConnectorsByOwner.put(doubleList, representation);
+        refreshCanvas(canvas);
 
 
 
@@ -508,7 +524,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                 if (dataValue != null) {
                     Object actualData = dataValue.getActualValue();
                     if (actualData != null) {
-                        simpleList.inserirNoInicio(actualData);
+                        simpleList.inserir(actualData);
                         System.out.println("Inserted: " + actualData);
                     } else {
                         System.out.println("Actual Data is null for node with ID: " + currentNode.id);
@@ -544,7 +560,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                 if (isSimpleList(innerListObject)) {
                     // It's a simple list, convert it to a simple list and add it to the current list
                     ListaSimplesNaoOrdenada<Object> innerList = convertHeapObjectToSimpleList(innerListObject, heapMap);
-                    list.inserirNoInicio(innerList);
+                    list.inserir(innerList);
                 }
             } else if (dataValue != null) {
                 // It's a direct value, add it to the current list
@@ -850,6 +866,11 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
     @Override public void mouseEntered(MouseEvent e) {}
     @Override public void mouseExited(MouseEvent e) {}
     @Override public void mouseMoved(MouseEvent e) {}
+
+
+
+
+
 
 
 }

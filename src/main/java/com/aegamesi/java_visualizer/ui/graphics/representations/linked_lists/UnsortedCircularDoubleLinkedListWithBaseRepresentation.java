@@ -23,16 +23,13 @@ public class UnsortedCircularDoubleLinkedListWithBaseRepresentation extends
 
 
 
-
-    public void update() {
-        super.update();
-        //create the connection from tail field reference to tail node
-        ListaDuplaNaoOrdenada.No node = (ListaDuplaNaoOrdenada.No) tailFieldReference.getFieldValue();
-        if (node == null) {
-            return;
-        }
-        addNewConnection(new ZConnection(tailFieldReference.getOutConnector(), nodeRepresentationByOwner.get(node), Color.RED, 20, 14));
+    @Override
+    public void init() {
+        super.init();
+        container.setTopCellSpacing(15);
     }
+
+
 
 
 
