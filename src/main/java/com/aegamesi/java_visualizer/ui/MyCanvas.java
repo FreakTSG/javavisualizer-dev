@@ -300,6 +300,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                 if (existingRepresentation != null) {
                     // Connect to existing representation
                     canvas.add(item, existingRepresentation);
+                    refreshCanvas(canvas);
                 } else {
                     System.out.println("Existing Representation is null\n\n");
                     // Create new representation
@@ -308,12 +309,12 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                     //nestedListRepresentation.update();
                     canvas.add(item, nestedListRepresentation);
                     existingRepresentations.put(item, nestedListRepresentation);
-
+                    refreshCanvas(canvas);
                 }
             } else {
                 PrimitiveOrEnumRepresentation itemRepresentation = new PrimitiveOrEnumRepresentation(position, item, canvas);
                 canvas.add(item, itemRepresentation);
-
+                refreshCanvas(canvas);
 
             }
             index++;

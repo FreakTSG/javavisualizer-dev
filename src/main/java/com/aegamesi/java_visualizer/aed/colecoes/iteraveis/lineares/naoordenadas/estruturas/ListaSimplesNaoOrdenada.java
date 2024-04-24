@@ -90,7 +90,7 @@ public class ListaSimplesNaoOrdenada<T> implements ColecaoIteravelLinearNaoOrden
 
     @Override
     public int hashCode() {
-        int result = Objects.hashCode(base);
+        int result = 1;
         No current = base.seguinte;
         while (current != base) {
             result = 31 * result + (current.elemento != null ? current.elemento.hashCode() : 0);
