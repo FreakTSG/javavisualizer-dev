@@ -27,12 +27,12 @@ task runCanvasTest(type: JavaExec) {
 }
 
 intellij {
-    intellij.version = "2022.1.1"
+    intellij.version = "2023.2.2"
     plugins = ["com.intellij.java"]
 }
 
 patchPluginXml {
-    sinceBuild = "221"
+    sinceBuild = "232"
     untilBuild = "251.*"
 }
 targetCompatibility = JavaVersion.VERSION_16
