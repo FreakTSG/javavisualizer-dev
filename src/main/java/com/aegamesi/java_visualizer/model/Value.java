@@ -34,26 +34,6 @@ public class Value {
 		}
 	}
 
-	public Object getActualValue() {
-		switch (type) {
-			case STRING:
-				return stringValue;
-			case LONG:
-				return longValue;
-			case DOUBLE:
-				return doubleValue;
-			case BOOLEAN:
-				return booleanValue;
-			case CHAR:
-				return charValue;
-			case REFERENCE:
-				// For REFERENCE, you would need additional logic to resolve what this reference points to
-				return null; // Or some representation of a reference
-			default:
-				return null;
-		}
-	}
-
 	public enum Type {
 		NULL, VOID, LONG, DOUBLE, BOOLEAN, STRING, CHAR, REFERENCE;
 	}

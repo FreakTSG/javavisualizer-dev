@@ -15,22 +15,18 @@ import java.awt.*;
 public class UnsortedCircularDoubleLinkedListWithBaseRepresentation extends
         CircularDoubleLinkedListWithBaseRepresentation<ListaDuplaNaoOrdenada, ListaDuplaNaoOrdenada.No> implements UnsortedListRepresentation {
     private static final long serialVersionUID = 1L;
+
     private FieldReference tailFieldReference;
 
     public UnsortedCircularDoubleLinkedListWithBaseRepresentation(Point position, ListaDuplaNaoOrdenada owner, MyCanvas myCanvas) {
         super(position, owner, myCanvas);
     }
 
-
-
     @Override
     public void init() {
         super.init();
         container.setTopCellSpacing(15);
     }
-
-
-
 
 
     @Override

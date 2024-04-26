@@ -5,6 +5,7 @@ import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.naoordenadas
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.ordenadas.estruturas.ListaDuplaOrdenada;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.ordenadas.estruturas.ListaSimplesOrdenada;
 import com.aegamesi.java_visualizer.model.*;
+
 import com.aegamesi.java_visualizer.ui.graphics.Connection;
 import com.aegamesi.java_visualizer.ui.graphics.OutConnector;
 import com.aegamesi.java_visualizer.ui.graphics.PositionalGraphicElement;
@@ -19,6 +20,7 @@ import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.Sor
 import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.UnsortedCircularDoubleLinkedListWithBaseRepresentation;
 import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.UnsortedCircularSimpleLinkedListWithBaseRepresentation;
 import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.nodes.DoubleNodeRepresentation;
+
 import com.aegamesi.java_visualizer.utils.Vetor2D;
 import com.aegamesi.java_visualizer.aed.Comparacao;
 import ui.graphics.representations.linked_lists.SortedCircularDoubleLinkedListWithBaseMaxOrderRepresentation;
@@ -37,7 +39,6 @@ import static com.aegamesi.java_visualizer.model.HeapObject.*;
 import static com.aegamesi.java_visualizer.model.Value.Type.LONG;
 import static com.aegamesi.java_visualizer.model.Value.Type.STRING;
 import static com.aegamesi.java_visualizer.ui.IDSToolWindow.myCanvas;
-
 
 public class MyCanvas extends JPanel implements MouseListener, MouseMotionListener {
     private RepresentationWithInConnectors draggedRepresentation = null;
@@ -77,8 +78,6 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         zoom = 1;
         setDoubleBuffered(true);
         repaint();
-
-        //removeAllRepresentations();
 
     }
 
