@@ -34,12 +34,10 @@ public class UnsortedCircularSimpleLinkedListWithBaseRepresentation extends
     }
 
 
-    public void updateIteratorPosition(int position) {
-        // Add a method to update the iterator's position
-        this.iteratorPosition = position;
-        // Invoke a repaint to update the visualization
-        myCanvas.repaint();
-    }
+  // public void updateIteratorPosition(int position) {
+  //     this.iteratorPosition = position;
+  //     myCanvas.repaint();
+  // }
     @Override
     public void paint(Graphics g) {
         super.paint(g); // Paint the list

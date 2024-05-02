@@ -8,7 +8,6 @@ import java.awt.*;
 
 abstract public class RepresentationWithInConnectors<T extends Object> extends Representation<T> {
     private static final long serialVersionUID = 1L;
-
     protected int referenceCount;
 
     public RepresentationWithInConnectors(Point position, T owner, MyCanvas myCanvas) {

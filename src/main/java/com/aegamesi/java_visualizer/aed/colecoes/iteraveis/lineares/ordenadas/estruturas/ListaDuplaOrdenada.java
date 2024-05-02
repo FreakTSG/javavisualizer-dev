@@ -330,6 +330,11 @@ public class ListaDuplaOrdenada<T> implements ColecaoIteravelLinearOrdenada<T> {
         }
 
         @Override
+        public ColecaoIteravel<T> getList() {
+            return null;
+        }
+
+        @Override
         public boolean podeRecuar() {
             return anterior != anteriorAoPrimeiro;
         }

@@ -1,6 +1,7 @@
 package com.aegamesi.java_visualizer.aed.colecoes.iteraveis.associativas.estruturas;
 
 import com.aegamesi.java_visualizer.aed.Comparacao;
+import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.ColecaoIteravel;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.IteradorIteravelDuplo;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.associativas.ColecaoIteravelAssociativa;
 
@@ -304,6 +305,11 @@ public class TabelaHashOrdenada<C, V> implements ColecaoIteravelAssociativa<C, V
         }
 
         @Override
+        public ColecaoIteravel<Associacao<C, V>> getList() {
+            return null;
+        }
+
+        @Override
         public boolean podeRecuar() {
             return anterior != anteriorAoPrimeiro;
         }
@@ -377,6 +383,11 @@ public class TabelaHashOrdenada<C, V> implements ColecaoIteravelAssociativa<C, V
         public C getChaveOuValor(Associacao<C, V> associacao) {
             return associacao.getChave();
         }
+
+        @Override
+        public ColecaoIteravel<C> getList() {
+            return null;
+        }
     }
 
     protected class IteradorValores extends IteradorParcial<V> {
@@ -390,6 +401,11 @@ public class TabelaHashOrdenada<C, V> implements ColecaoIteravelAssociativa<C, V
         @Override
         public V getChaveOuValor(Associacao<C, V> associacao) {
             return associacao.getValor();
+        }
+
+        @Override
+        public ColecaoIteravel<V> getList() {
+            return null;
         }
     }
 

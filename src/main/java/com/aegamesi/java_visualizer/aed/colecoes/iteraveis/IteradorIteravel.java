@@ -55,4 +55,11 @@ public interface IteradorIteravel<T> extends Iterator<T>, Iterable<T> {
     default Iterator<T> iterator() {
         return this;
     }
+
+    /**
+     * Returns the list that this iterator is iterating over.
+     *
+     * @return the list associated with this iterator
+     */
+    ColecaoIteravel<T> getList();
 }

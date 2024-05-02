@@ -301,5 +301,10 @@ public class ListaSimplesOrdenada<T> implements ColecaoIteravelLinearOrdenada<T>
             corrente = corrente.seguinte;
             return corrente.elemento;
         }
+
+        @Override
+        public ColecaoIteravel<T> getList() {
+            return null;
+        }
     }
 }

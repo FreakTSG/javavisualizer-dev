@@ -11,10 +11,7 @@ import com.aegamesi.java_visualizer.ui.graphics.OutConnector;
 import com.aegamesi.java_visualizer.ui.graphics.PositionalGraphicElement;
 import com.aegamesi.java_visualizer.ui.graphics.StraightConnection;
 import com.aegamesi.java_visualizer.ui.graphics.aggregations.Reference;
-import com.aegamesi.java_visualizer.ui.graphics.representations.DefaultRepresentation;
-import com.aegamesi.java_visualizer.ui.graphics.representations.PrimitiveOrEnumRepresentation;
-import com.aegamesi.java_visualizer.ui.graphics.representations.Representation;
-import com.aegamesi.java_visualizer.ui.graphics.representations.RepresentationWithInConnectors;
+import com.aegamesi.java_visualizer.ui.graphics.representations.*;
 import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.SortedCircularSimpleLinkedListAlsoWithBaseRepresentation;
 import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.SortedCircularSimpleLinkedListWithBaseMaxOrderRepresentation;
 import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.UnsortedCircularDoubleLinkedListWithBaseRepresentation;
@@ -25,6 +22,7 @@ import com.aegamesi.java_visualizer.utils.Vetor2D;
 import com.aegamesi.java_visualizer.aed.Comparacao;
 import ui.graphics.representations.linked_lists.SortedCircularDoubleLinkedListWithBaseMaxOrderRepresentation;
 
+import javax.sound.midi.SysexMessage;
 import javax.swing.*;
 
 import java.awt.*;
@@ -39,6 +37,7 @@ import static com.aegamesi.java_visualizer.model.HeapObject.*;
 import static com.aegamesi.java_visualizer.model.Value.Type.LONG;
 import static com.aegamesi.java_visualizer.model.Value.Type.STRING;
 import static com.aegamesi.java_visualizer.ui.IDSToolWindow.myCanvas;
+import static com.aegamesi.java_visualizer.ui.graphics.representations.Operator.canvas;
 
 public class MyCanvas extends JPanel implements MouseListener, MouseMotionListener {
     private RepresentationWithInConnectors draggedRepresentation = null;
@@ -62,6 +61,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
     private Map<Object, RepresentationWithInConnectors> existingRepresentations = new HashMap<>();
 
 
+
     public MyCanvas(IDSToolWindow IDSToolWindow) {
         MyCanvas.IDSToolWindow = IDSToolWindow;
         compactMode = false;
@@ -78,6 +78,8 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         zoom = 1;
         setDoubleBuffered(true);
         repaint();
+
+
 
     }
 
@@ -165,6 +167,12 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                    System.out.println("Double list converted "+doubleList);
                    addDoubleListRepresentation(doubleList, canvas);
                }
+               if(HeapObject.label.contains("Iterador")){
+                     System.out.println("Entrei no iterador");
+                     addIteratorRepresentation(HeapObject, heapMap, canvas);
+
+
+               }
 
                 Comparacao<Object> comparator = (o1, o2) -> {
                     if (o1.getClass() == o2.getClass() && o1 instanceof Comparable) {
@@ -203,6 +211,20 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         }
         refreshCanvas(canvas);
     }
+
+    private void addIteratorRepresentation(HeapObject heapObject, Map<Long, HeapEntity> heapMap, MyCanvas canvas) {
+        Long currentNodeRef = heapObject.fields.get("corrent").reference;
+    HeapObject currentNode = (HeapObject) heapMap.get(currentNodeRef);
+    if (currentNode == null) {
+        System.out.println("Current node is null.");
+
+    }
+
+
+
+
+    }
+
 
     public static boolean isSortedSimpleList(HeapObject heapObject, Map<Long, HeapEntity> heapMap) {
         if (heapObject.fields.containsKey("base") && heapObject.fields.containsKey("criterio")) {
@@ -287,7 +309,10 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         int index = 0;
         for (Object item : simpleList) {
             Point position = calculatePositionForListItem(index);
-
+            System.out.println("What is going on here keyset: "+existingRepresentations.keySet());
+            System.out.println("What is going on here get(item): "+existingRepresentations.get(item));
+            System.out.println("What is going on here: item "+item);
+            System.out.println("What is going on here: containskey(item) "+existingRepresentations.containsKey(item));
             if (item instanceof ListaSimplesNaoOrdenada<?>) {
                 // Check if representation already exists
 
@@ -317,12 +342,13 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
             }
             index++;
-
+            System.out.println("Index: "+index);
         }
         UnsortedCircularSimpleLinkedListWithBaseRepresentation representation =
                 new UnsortedCircularSimpleLinkedListWithBaseRepresentation(new Point(START_X, START_Y), simpleList, canvas);
         canvas.add(simpleList, representation);
         System.out.println("Lista valores:" + simpleList);
+       // representation.updateIteratorPosition(index);
         existingRepresentations.put(simpleList, representation);
         canvas.representationWithInConnectorsByOwner.put(simpleList, representation);
         refreshCanvas(canvas);
@@ -630,6 +656,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         AffineTransform transform = new AffineTransform(g2.getTransform());
         transform.scale(zoom, zoom);
         g2.setTransform(transform);
+
 
         for (RepresentationWithInConnectors representationWithInConnectors : representationWithInConnectorsByOwner.values()) {
             representationWithInConnectors.paint(g);

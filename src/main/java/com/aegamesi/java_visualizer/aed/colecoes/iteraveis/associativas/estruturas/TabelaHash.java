@@ -1,5 +1,6 @@
 package com.aegamesi.java_visualizer.aed.colecoes.iteraveis.associativas.estruturas;
 
+import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.ColecaoIteravel;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.IteradorIteravel;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.associativas.ColecaoIteravelAssociativa;
 
@@ -298,6 +299,11 @@ public abstract class TabelaHash<C, V> implements ColecaoIteravelAssociativa<C, 
             seguinte = seguinteAtivo();
             return tabela[corrente].getAssociacao();
         }
+
+        @Override
+        public ColecaoIteravel<Associacao<C, V>> getList() {
+            return null;
+        }
     }
 
 
@@ -339,6 +345,11 @@ public abstract class TabelaHash<C, V> implements ColecaoIteravelAssociativa<C, 
         protected C getChaveOuValor(Associacao<C, V> a) {
             return a.getChave();
         }
+
+        @Override
+        public ColecaoIteravel<C> getList() {
+            return null;
+        }
     }
 
 
@@ -347,6 +358,11 @@ public abstract class TabelaHash<C, V> implements ColecaoIteravelAssociativa<C, 
         @Override
         protected V getChaveOuValor(Associacao<C, V> a) {
             return a.getValor();
+        }
+
+        @Override
+        public ColecaoIteravel<V> getList() {
+            return null;
         }
     }
 

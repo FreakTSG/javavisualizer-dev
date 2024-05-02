@@ -8,7 +8,7 @@ import java.awt.event.MouseEvent;
 import java.util.HashMap;
 
 abstract public class Operator implements MouseInputListener {
-    protected static MyCanvas canvas;
+    public static MyCanvas canvas;
 
     protected HashMap<Integer, State> states;
     protected State currentState;

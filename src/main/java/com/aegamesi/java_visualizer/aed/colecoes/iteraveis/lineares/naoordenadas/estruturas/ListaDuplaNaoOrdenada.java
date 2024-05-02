@@ -230,6 +230,11 @@ public class ListaDuplaNaoOrdenada<T> implements ColecaoIteravelLinearNaoOrdenad
         }
 
         @Override
+        public ColecaoIteravel<T> getList() {
+            return null;
+        }
+
+        @Override
         public boolean podeRecuar() {
             return corrente.anterior != base;
         }
