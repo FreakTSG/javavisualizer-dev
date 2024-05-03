@@ -1,5 +1,6 @@
 package com.aegamesi.java_visualizer.ui;
 
+import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.IteradorIteravel;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.naoordenadas.estruturas.ListaDuplaNaoOrdenada;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.naoordenadas.estruturas.ListaSimplesNaoOrdenada;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.ordenadas.estruturas.ListaDuplaOrdenada;
@@ -18,6 +19,8 @@ import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.Uns
 import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.UnsortedCircularSimpleLinkedListWithBaseRepresentation;
 import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.nodes.DoubleNodeRepresentation;
 
+import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.nodes.NodeRepresentation;
+import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.nodes.SimpleNodeRepresentation;
 import com.aegamesi.java_visualizer.utils.Vetor2D;
 import com.aegamesi.java_visualizer.aed.Comparacao;
 import ui.graphics.representations.linked_lists.SortedCircularDoubleLinkedListWithBaseMaxOrderRepresentation;
@@ -58,7 +61,11 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
     private static final int START_Y = 100;
     private static final int HORIZONTAL_SPACING = 50;
     private static final int VERTICAL_SPACING = 50;
+    private Map<Object, Integer> iteratorPositions = new HashMap<>(); // Default position
+    private Point nodePosition = new Point(200, 100); // Default position
+    private boolean showIterator = false;
     private Map<Object, RepresentationWithInConnectors> existingRepresentations = new HashMap<>();
+    private HashMap<Long, Point> nodePositions = new HashMap<>();
 
 
 
@@ -174,6 +181,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
                }
 
+
                 Comparacao<Object> comparator = (o1, o2) -> {
                     if (o1.getClass() == o2.getClass() && o1 instanceof Comparable) {
                         return ((Comparable) o1).compareTo(o2);
@@ -212,17 +220,94 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         refreshCanvas(canvas);
     }
 
-    private void addIteratorRepresentation(HeapObject heapObject, Map<Long, HeapEntity> heapMap, MyCanvas canvas) {
-        Long currentNodeRef = heapObject.fields.get("corrent").reference;
-    HeapObject currentNode = (HeapObject) heapMap.get(currentNodeRef);
-    if (currentNode == null) {
-        System.out.println("Current node is null.");
 
+    private Point calculateNodePosition(int index) {
+        return new Point(START_X + index * HORIZONTAL_SPACING, START_Y);
+    }
+
+    private void addIteratorRepresentation(HeapObject iterator, Map<Long, HeapEntity> heapMap, MyCanvas canvas) {
+        // Assuming 'iterator' is correctly pointing to the current node.
+        Long currentNodeRef = iterator.fields.get("corrente").reference;
+        HeapObject currentNode = (HeapObject) heapMap.get(currentNodeRef);
+        if (currentNode == null) {
+            System.out.println("Current node is null.");
+            return;
+        }
+
+        // Update the iterator's position on the canvas.
+        updateIteratorPosition(iterator.id, currentNode, heapMap);
+        canvas.repaint();  // Refresh to show the updated position.
+    }
+    private void updateIteratorPosition(Long iteratorId, HeapObject currentNode, Map<Long, HeapEntity> heapMap) {
+        Integer nodeIndex = getNodeIndex(currentNode, heapMap);
+        if (nodeIndex != null) {
+            // Store or update the iterator's position for rendering.
+            iteratorPositions.put(iteratorId, nodeIndex);
+            System.out.println("Iterator " + iteratorId + " is at node index " + nodeIndex);
+        } else {
+            System.out.println("Failed to find the current node index for iterator.");
+        }
+    }
+
+    private Integer getNodeIndex(HeapObject iterator, Map<Long, HeapEntity> heapMap) {
+        System.out.println("Getting index for node: " + iterator);
+        System.out.println("Getting label for node: " + iterator.label);
+        System.out.println("Getting fields for node: " + iterator.fields);
+        System.out.println("Getting id for node: " + iterator.id);
+        Long currentNodeRef = iterator.fields.get("seguinte").reference;
+        if (currentNodeRef == null) {
+            System.out.println("Starting reference in currentNode is null.");
+            return null;
+        }
+
+        int index = 0;
+        while (currentNodeRef != null ) {
+            HeapObject node = (HeapObject) heapMap.get(currentNodeRef);
+            System.out.println("Checking node at ref: " + currentNodeRef + " with ID: " + (node != null ? node.id : "null"));
+
+            if (node == null) {
+                System.out.println("Node at index " + index + " is null, breaking loop.");
+                break;
+            }
+            if (node.id == iterator.id) {
+                System.out.println("Node matched at index " + index);
+                return index;
+            }
+            currentNodeRef = node.fields.get("seguinte").reference;
+            index++;
+        }
+        System.out.println("Node not found in the list.");
+        return null; // Node not found
     }
 
 
+    private void drawIteratorSquare(Graphics2D g, Point position) {
+        int size = 20; // Total size of the square
+        int cornerLength = 5; // Length of each corner line
 
+        // Adjust the starting positions to ensure corners meet
+        g.setColor(Color.BLACK);
 
+        // Top-left corner
+        g.drawLine(position.x - size / 2, position.y - size / 2, position.x - size / 2 + cornerLength, position.y - size / 2);
+        g.drawLine(position.x - size / 2, position.y - size / 2, position.x - size / 2, position.y - size / 2 + cornerLength);
+
+        // Top-right corner
+        g.drawLine(position.x + size / 2 - cornerLength, position.y - size / 2, position.x + size / 2, position.y - size / 2);
+        g.drawLine(position.x + size / 2, position.y - size / 2, position.x + size / 2, position.y - size / 2 + cornerLength);
+
+        // Bottom-left corner
+        g.drawLine(position.x - size / 2, position.y + size / 2 - cornerLength, position.x - size / 2, position.y + size / 2);
+        g.drawLine(position.x - size / 2, position.y + size / 2, position.x - size / 2 + cornerLength, position.y + size / 2);
+
+        // Bottom-right corner
+        g.drawLine(position.x + size / 2 - cornerLength, position.y + size / 2, position.x + size / 2, position.y + size / 2);
+        g.drawLine(position.x + size / 2, position.y + size / 2 - cornerLength, position.x + size / 2, position.y + size / 2);
+    }
+
+    private void drawArrow(Graphics2D g, Point from, Point to) {
+        g.setColor(Color.RED);
+        g.drawLine(from.x, from.y, to.x, to.y);
     }
 
 
@@ -264,46 +349,6 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         canvas.revalidate();
         canvas.repaint();
     }
-
-   //private void determineAndRepresentHeapObject(HeapObject heapObject, MyCanvas canvas, Map<Long, HeapEntity> heapMap) {
-
-
-
-   //        ListaSimplesNaoOrdenada<?> simpleList = convertHeapObjectToSimpleList(heapObject, heapMap);
-   //        addSimpleListRepresentation(simpleList, canvas);
-   //        System.out.println("Simple list represented.");
-
-
-
-
-
-
-   //}
-
-
-  // private void addListofListsRepresentation(ListaSimplesNaoOrdenada<?> simpleList, MyCanvas canvas) {
-  //     // Logic to create a visual representation for the simple list and add it to the canvas
-  //     // This might involve creating new GraphicElement objects and adding them to the canvas
-
-  //     UnsortedCircularSimpleLinkedListWithBaseRepresentation listRepresentation =
-  //             new UnsortedCircularSimpleLinkedListWithBaseRepresentation(new Point(START_X, START_Y), simpleList, canvas);
-
-  //     // Add the list representation to the canvas and to the map
-  //     canvas.add(simpleList, listRepresentation);
-
-  //     System.out.println("\n representacoes within connectors:"+representationWithInConnectorsByOwner+" acaba aqui");
-  //     System.out.println("\n representacoes existentes:"+existingRepresentations+" acaba aqui2");
-
-  //     for (Object item : simpleList) {
-  //         RepresentationWithInConnectors sublistRepresentation = canvas.representationWithInConnectorsByOwner.get(item);
-
-  //     }
-
-  //     System.out.println("Lista valores:" + simpleList);
-  //     refreshCanvas(canvas);
-
-
-  // }
 
     private void addSimpleListRepresentation(ListaSimplesNaoOrdenada<?> simpleList, MyCanvas canvas) {
         int index = 0;
@@ -657,6 +702,12 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         transform.scale(zoom, zoom);
         g2.setTransform(transform);
 
+        iteratorPositions.forEach((id, index) -> {
+            Point pos = calculateNodePosition(index);
+            drawIteratorSquare(g2, new Point(pos.x+50, pos.y + 50));
+            drawArrow(g2, new Point(pos.x+50, pos.y + 50), pos);
+        });
+
 
         for (RepresentationWithInConnectors representationWithInConnectors : representationWithInConnectorsByOwner.values()) {
             representationWithInConnectors.paint(g);
@@ -667,6 +718,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         for (PositionalGraphicElement positionalGraphicElement : positionalGraphicElements) {
             positionalGraphicElement.paint(g);
         }
+
 //        g.drawString( mousePosition.x + "," + mousePosition.y + "   ZOOM=" + zoom + "   SIZE=" + getSize().width + "x" + getSize().height, 10, 10);
 //        g.drawString("ActualFilename=->" + actualFilename + "<-" + mousePosition.x + "," + mousePosition.y + "   ZOOM=" + zoom + "   SIZE=" + getSize().width + "x" + getSize().height, 10, 10);
 //        g.drawString("showVar=" + showVar, 10, 10);

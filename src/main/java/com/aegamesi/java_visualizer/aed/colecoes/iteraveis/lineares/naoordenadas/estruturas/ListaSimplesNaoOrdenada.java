@@ -263,11 +263,12 @@ public class ListaSimplesNaoOrdenada<T> implements ColecaoIteravelLinearNaoOrden
 
     public class Iterador implements IteradorIteravel<T> {
         protected No corrente;
+        protected int currentIndex = 0;
         protected ListaSimplesNaoOrdenada<T> list;
 
         public Iterador(ListaSimplesNaoOrdenada<T> list) {
             this.list = list;
-            this.corrente = list.base; // Start at the base (or however your list is structured)
+            this.corrente = list.base;
         }
         protected Iterador() {
             reiniciar();
@@ -299,6 +300,7 @@ public class ListaSimplesNaoOrdenada<T> implements ColecaoIteravelLinearNaoOrden
                 throw new NoSuchElementException();
             }
             corrente = corrente.seguinte;
+            currentIndex++;
             return corrente.elemento;
         }
 

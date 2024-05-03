@@ -1,6 +1,7 @@
 package com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists;
 
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.ColecaoIteravelLinear;
+import com.aegamesi.java_visualizer.model.HeapObject;
 import com.aegamesi.java_visualizer.ui.ConstantsIDS;
 import com.aegamesi.java_visualizer.ui.MyCanvas;
 import com.aegamesi.java_visualizer.ui.graphics.CConnection;
@@ -15,12 +16,19 @@ import com.aegamesi.java_visualizer.utils.Utils;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.HashMap;
+import java.util.Map;
+
+
 
 public abstract class CircularSimpleLinkedListWithBaseRepresentation<TLinkedList extends
         ColecaoIteravelLinear, TNode> extends CircularLinkedListWithBaseRepresentation<TLinkedList, SimpleNodeRepresentation> implements
         SimpleLinkedListRepresentation<TLinkedList> {
     private static final long serialVersionUID = 1L;
-
+    private static final int START_X = 100;
+    private static final int START_Y = 100;
+    private static final int HORIZONTAL_SPACING = 50;
+    private Map<HeapObject, Point> nodePositions = new HashMap<>();
 
     public CircularSimpleLinkedListWithBaseRepresentation(Point position, TLinkedList owner, MyCanvas myCanvas) {
         super(position, owner, myCanvas, true);
@@ -60,10 +68,17 @@ public abstract class CircularSimpleLinkedListWithBaseRepresentation<TLinkedList
 
 
     private void createNode(FieldReference nodeFieldReference) {
+
         TNode node = (TNode) nodeFieldReference.getFieldValue();
+        System.err.println("Node: " + node);
 
 //        final LinkedListNodeWrapper nodeWrapper = new LinkedListNodeWrapper(node.getClass(), node.getClass().getName(), node, owner, actualIndex);
         SimpleNodeRepresentation<TNode> simpleNodeRepresentation = new SimpleNodeRepresentation<>(new Point(), node, myCanvas);
+
+        //Point nodePosition = calculateNodePosition(node);
+        //nodePositions.put((HeapObject) node, nodePosition);  // Store node position
+        // simpleNodeRepresentation.setPosition(nodePosition);  // Set position for representation
+
         ContainerWithoutInConnectors nodeAndIndexContainer = new ContainerWithoutInConnectors(new Point(), new Dimension(), false);
         nodeAndIndexContainer.add(simpleNodeRepresentation.getContainer());
         nodeAndIndexContainer.setInnerCellSpacing(0);
@@ -97,6 +112,25 @@ public abstract class CircularSimpleLinkedListWithBaseRepresentation<TLinkedList
         } else {
             createNode(nextFieldReference);
         }
+    }
+
+    private Point calculateNodePosition(TNode node) {
+        // Implement position calculation logic based on your layout
+        // This is a placeholder implementation
+        int index = getIndexFromNode(node);  // Implement this method to determine the node's index or another method to determine position
+        return new Point(START_X + index * HORIZONTAL_SPACING, START_Y);
+    }
+
+    private int getIndexFromNode(TNode node) {
+
+        // Example: If the node is an integer, return the integer value as the index
+        if (node instanceof Integer) {
+            return (int) node;
+        }
+        // If the node is a custom object, return a unique identifier or index
+        // Example: If the node has an ID field, return the ID value
+        // Example: If the node has a name field, return the hash code of the name
+        return node.hashCode();
     }
 
 }
