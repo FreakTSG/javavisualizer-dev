@@ -227,15 +227,10 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
     private void addIteratorRepresentation(HeapObject iterator, Map<Long, HeapEntity> heapMap, MyCanvas canvas) {
         // Assuming 'iterator' is correctly pointing to the current node.
-        Long currentNodeRef = iterator.fields.get("corrente").reference;
-        HeapObject currentNode = (HeapObject) heapMap.get(currentNodeRef);
-        if (currentNode == null) {
-            System.out.println("Current node is null.");
-            return;
-        }
+
 
         // Update the iterator's position on the canvas.
-        updateIteratorPosition(iterator.id, currentNode, heapMap);
+        updateIteratorPosition(iterator.id, iterator, heapMap);
         canvas.repaint();  // Refresh to show the updated position.
     }
     private void updateIteratorPosition(Long iteratorId, HeapObject currentNode, Map<Long, HeapEntity> heapMap) {
@@ -254,30 +249,14 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         System.out.println("Getting label for node: " + iterator.label);
         System.out.println("Getting fields for node: " + iterator.fields);
         System.out.println("Getting id for node: " + iterator.id);
-        Long currentNodeRef = iterator.fields.get("seguinte").reference;
+        Long currentNodeRef = iterator.fields.get("corrente").reference;
+        System.out.println("Current node reference: " + currentNodeRef);
         if (currentNodeRef == null) {
             System.out.println("Starting reference in currentNode is null.");
             return null;
         }
+        return currentNodeRef.intValue();
 
-        int index = 0;
-        while (currentNodeRef != null ) {
-            HeapObject node = (HeapObject) heapMap.get(currentNodeRef);
-            System.out.println("Checking node at ref: " + currentNodeRef + " with ID: " + (node != null ? node.id : "null"));
-
-            if (node == null) {
-                System.out.println("Node at index " + index + " is null, breaking loop.");
-                break;
-            }
-            if (node.id == iterator.id) {
-                System.out.println("Node matched at index " + index);
-                return index;
-            }
-            currentNodeRef = node.fields.get("seguinte").reference;
-            index++;
-        }
-        System.out.println("Node not found in the list.");
-        return null; // Node not found
     }
 
 
@@ -356,8 +335,10 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
             Point position = calculatePositionForListItem(index);
             System.out.println("What is going on here keyset: "+existingRepresentations.keySet());
             System.out.println("What is going on here get(item): "+existingRepresentations.get(item));
-            System.out.println("What is going on here: item "+item);
+            System.out.println("What is going on here: item "+item.hashCode());
+            
             System.out.println("What is going on here: containskey(item) "+existingRepresentations.containsKey(item));
+
             if (item instanceof ListaSimplesNaoOrdenada<?>) {
                 // Check if representation already exists
 
