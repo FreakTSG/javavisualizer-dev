@@ -190,6 +190,10 @@ public class ListaSimplesOrdenada<T> implements ColecaoIteravelLinearOrdenada<T>
         return s.toString();
     }
 
+    public No getHead() {
+        return base.seguinte;
+    }
+
 
     public abstract class No implements Serializable {
         private static final long serialVersionUID = 1L;

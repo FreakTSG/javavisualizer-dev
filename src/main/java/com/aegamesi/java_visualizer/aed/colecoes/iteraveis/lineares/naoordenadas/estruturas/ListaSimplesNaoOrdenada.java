@@ -224,7 +224,7 @@ public class ListaSimplesNaoOrdenada<T> implements ColecaoIteravelLinearNaoOrden
 
     @Override
     public IteradorIteravel<T> iterador() {
-        return new Iterador(this);
+        return new Iterador();
     }
 
     @Override
@@ -238,6 +238,10 @@ public class ListaSimplesNaoOrdenada<T> implements ColecaoIteravelLinearNaoOrden
         }
         s.append("}\n");
         return s.toString();
+    }
+
+    public No getHead() {
+        return base.seguinte;
     }
 
 
@@ -264,19 +268,16 @@ public class ListaSimplesNaoOrdenada<T> implements ColecaoIteravelLinearNaoOrden
     public class Iterador implements IteradorIteravel<T> {
         protected No corrente;
         protected int currentIndex = 0;
-        protected ListaSimplesNaoOrdenada<T> list;
 
-        public Iterador(ListaSimplesNaoOrdenada<T> list) {
-            this.list = list;
-            this.corrente = list.base;
-        }
+
         protected Iterador() {
             reiniciar();
         }
 
         @Override
         public void reiniciar() {
-            corrente = list.base;
+            corrente = base;
+            currentIndex = 0;
         }
 
         @Override
@@ -290,7 +291,7 @@ public class ListaSimplesNaoOrdenada<T> implements ColecaoIteravelLinearNaoOrden
 
         @Override
         public boolean podeAvancar() {
-            return corrente.seguinte != list.base;
+            return corrente.seguinte != base;
         }
 
 
@@ -301,12 +302,13 @@ public class ListaSimplesNaoOrdenada<T> implements ColecaoIteravelLinearNaoOrden
             }
             corrente = corrente.seguinte;
             currentIndex++;
+            System.out.println("Current Index: " + currentIndex);  // Debugging line
             return corrente.elemento;
         }
 
         @Override
         public ColecaoIteravel<T> getList() {
-            return list;
+            return null;
         }
     }
 }
