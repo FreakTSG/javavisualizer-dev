@@ -6,6 +6,7 @@ import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.naoordenadas
 
 import java.io.Serializable;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 /**
  * @author Actual code:
@@ -19,17 +20,19 @@ public class ListaDuplaNaoOrdenada<T> implements ColecaoIteravelLinearNaoOrdenad
     private static final long serialVersionUID = 1L;
 
     protected No base;
+
+    protected No noFinal;
     protected int numeroElementos;
 
     public ListaDuplaNaoOrdenada() {
-        base = new No();
+        noFinal = base = new No();
         numeroElementos = 0;
     }
 
     public ListaDuplaNaoOrdenada(ColecaoIteravel<T> colecao) {
         this();
         for (T elem : colecao) {
-            new No(elem, base);
+            noFinal= new No(elem, noFinal);
         }
         numeroElementos = colecao.getNumeroElementos();
     }
@@ -52,7 +55,7 @@ public class ListaDuplaNaoOrdenada<T> implements ColecaoIteravelLinearNaoOrdenad
     }
 
     protected No getNoPorIndice(int indice) {
-        if (indice < 0 || indice >= numeroElementos) {
+        if(indice < 0 || indice >= numeroElementos) {
             throw new IndexOutOfBoundsException();
         }
 
@@ -72,6 +75,37 @@ public class ListaDuplaNaoOrdenada<T> implements ColecaoIteravelLinearNaoOrdenad
         }
 
         return cor;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ListaDuplaNaoOrdenada<?>)) return false;
+        ListaDuplaNaoOrdenada<?> that = (ListaDuplaNaoOrdenada<?>) o;
+        if (this.numeroElementos != that.numeroElementos) return false;
+
+        No thisCurrent = this.base.seguinte;
+        No thatCurrent = (No) that.base.seguinte;
+
+        while (thisCurrent != base && thatCurrent != that.base) {
+            if (!Objects.equals(thisCurrent.elemento, thatCurrent.elemento)) {
+                return false;
+            }
+            thisCurrent = thisCurrent.seguinte;
+            thatCurrent = thatCurrent.seguinte;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 1;
+        No current = this.base.seguinte;
+        while (current != base) {
+            result = 31 * result + (current.elemento != null ? current.elemento.hashCode() : 0);
+            current = current.seguinte;
+        }
+        return result;
     }
 
     @Override
@@ -178,6 +212,7 @@ public class ListaDuplaNaoOrdenada<T> implements ColecaoIteravelLinearNaoOrdenad
         protected T elemento;
         protected No anterior;
         protected No seguinte;
+
 
         // Criação do nó base
         protected No() {
