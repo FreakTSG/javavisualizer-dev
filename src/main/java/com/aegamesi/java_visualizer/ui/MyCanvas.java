@@ -170,20 +170,19 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
                    System.out.println("Entrei na lista Simples ordenada");
                    ListaSimplesOrdenada<Object> simpleSortedList = convertHeapObjectToSortedSimpleList(HeapObject, heapMap, comparator);
-                   System.out.println("Double list converted "+simpleSortedList);
+                   System.out.println("Sorted SImple list converted "+simpleSortedList);
                    addSortedSimpleListRepresentation(simpleSortedList, canvas);
                }
                if (isSortedDoubleList(HeapObject, heapMap)){
                    System.out.println("Entrei na lista Dupla ordenada");
                    ListaDuplaOrdenada<Object> doubleSortedList = convertHeapObjectToSortedDoubleList(HeapObject, heapMap, comparator);
-                   System.out.println("Double list converted "+doubleSortedList);
+                   System.out.println("Sorted Double list converted "+doubleSortedList);
                    addSortedDoubleListRepresentation(doubleSortedList, canvas);
 
                }
 
                 //determineAndRepresentHeapObject(heapObject, canvas,heapMap);
             }
-
         }
 
         if (canvas.representationWithInConnectorsByOwner.isEmpty()) {
@@ -259,6 +258,26 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                 }
 
             }
+            if (item instanceof ListaDuplaNaoOrdenada<?>) {
+                System.out.println("Estou aqui dentro 1\n\n");
+
+                RepresentationWithInConnectors existingRepresentation = findRepresentationForDoubleList((ListaDuplaNaoOrdenada<?>) item);
+                if (existingRepresentation != null) {
+                    // Connect to existing representation
+                    canvas.add(item, existingRepresentation);
+                    refreshCanvas(canvas);
+                } else {
+                    System.out.println("Existing Representation is null\n\n");
+                    // Create new representation
+                    UnsortedCircularDoubleLinkedListWithBaseRepresentation nestedListRepresentation =
+                            new UnsortedCircularDoubleLinkedListWithBaseRepresentation(position, (ListaDuplaNaoOrdenada<?>) item, canvas);
+                    //nestedListRepresentation.update();
+                    canvas.add(item, nestedListRepresentation);
+                    existingRepresentations.put(item, nestedListRepresentation);
+                    refreshCanvas(canvas);
+                }
+
+            }
             if(item instanceof ListaSimplesOrdenada<?>){
                 RepresentationWithInConnectors existingRepresentation = findRepresentationForSortedList((ListaSimplesOrdenada<?>) item);
                 if (existingRepresentation != null) {
@@ -315,6 +334,15 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
     private RepresentationWithInConnectors findRepresentationForList(ListaSimplesNaoOrdenada<?> list) {
         for (Map.Entry<Object, RepresentationWithInConnectors> entry : existingRepresentations.entrySet()) {
             if (entry.getKey() instanceof ListaSimplesNaoOrdenada<?> && list.equals(entry.getKey())) {
+                return entry.getValue();
+            }
+        }
+        return null;
+    }
+
+    private RepresentationWithInConnectors findRepresentationForDoubleList(ListaDuplaNaoOrdenada<?> list) {
+        for (Map.Entry<Object, RepresentationWithInConnectors> entry : existingRepresentations.entrySet()) {
+            if (entry.getKey() instanceof ListaDuplaNaoOrdenada<?> && list.equals(entry.getKey())) {
                 return entry.getValue();
             }
         }
