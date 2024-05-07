@@ -7,6 +7,7 @@ import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.ordenadas.es
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.ordenadas.estruturas.ListaSimplesOrdenada;
 import com.aegamesi.java_visualizer.model.*;
 
+import com.aegamesi.java_visualizer.model.Frame;
 import com.aegamesi.java_visualizer.ui.graphics.*;
 import com.aegamesi.java_visualizer.ui.graphics.aggregations.Reference;
 import com.aegamesi.java_visualizer.ui.graphics.representations.*;
@@ -176,6 +177,8 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                    addDoubleListRepresentation(doubleList, canvas);
                }
                if(HeapObject.label.contains("Iterador")){
+                  String variableName=getVariableNameForHeapObject(trace, HeapObject.id);
+                  System.out.println("Variable name for HeapObject: "+variableName);
                      System.out.println("Entrei no iterador");
                      currentIndex = HeapObject.fields.get("currentIndex");
                      addIteratorRepresentation(currentIndex);
@@ -244,6 +247,18 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
        refreshCanvas(this);
        repaint();
    }
+
+    public String getVariableNameForHeapObject(ExecutionTrace trace, long heapObjectId) {
+        for (Frame frame : trace.frames) {
+            for (Map.Entry<String, Value> entry : frame.locals.entrySet()) {
+                Value value = entry.getValue();
+                if (value.type == Value.Type.REFERENCE && value.reference == heapObjectId) {
+                    return entry.getKey();
+                }
+            }
+        }
+        return null; // Return null if no variable name is found for the HeapObject
+    }
 
     private void drawArrow(Graphics2D g2,Point from, Point to) {
 
