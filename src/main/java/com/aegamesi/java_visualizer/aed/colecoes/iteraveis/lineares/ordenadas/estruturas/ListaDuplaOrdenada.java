@@ -7,6 +7,7 @@ import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.ordenadas.Co
 
 import java.io.Serializable;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 /**
  * @author Actual code:
@@ -108,6 +109,38 @@ public class ListaDuplaOrdenada<T> implements ColecaoIteravelLinearOrdenada<T> {
 
         return cor;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ListaDuplaOrdenada<?>)) return false;
+        ListaDuplaOrdenada<?> that = (ListaDuplaOrdenada<?>) o;
+        if (this.numeroElementos != that.numeroElementos) return false;
+
+        ListaDuplaOrdenada.No thisCurrent = this.base.seguinte;
+        ListaDuplaOrdenada.No thatCurrent = (ListaDuplaOrdenada.No) that.base.seguinte;
+
+        while (thisCurrent != base && thatCurrent != that.base) {
+            if (!Objects.equals(thisCurrent.elemento, thatCurrent.elemento)) {
+                return false;
+            }
+            thisCurrent = thisCurrent.seguinte;
+            thatCurrent = thatCurrent.seguinte;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 1;
+        ListaDuplaOrdenada.No current = base.seguinte;
+        while (current != base) {
+            result = 31 * result + (current.elemento != null ? current.elemento.hashCode() : 0);
+            current = current.seguinte;
+        }
+        return result;
+    }
+
 
     @Override
     public void inserir(T elem) {
