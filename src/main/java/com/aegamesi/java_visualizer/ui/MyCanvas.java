@@ -140,19 +140,8 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                 }
 
             } else if (entity instanceof HeapObject ) {
+
                 HeapObject HeapObject = (HeapObject) entity;
-                if(isSimpleList(HeapObject)){
-                    System.out.println("Entrei na lista simples nao ordenada");
-                    ListaSimplesNaoOrdenada<?> simpleList=convertHeapObjectToListofLists(HeapObject, heapMap,canvas);
-                    System.out.println("Simple list converted "+simpleList);
-                    addSimpleListRepresentation(simpleList, canvas);
-                }
-               if(HeapObject.label.contains("ListaDuplaNaoOrdenada")){
-                   System.out.println("Entrei na lista dupla nao ordenada");
-                   ListaDuplaNaoOrdenada<?> doubleList=convertHeapObjectToDoubleList(HeapObject, heapMap);
-                   System.out.println("Double list converted "+doubleList);
-                   addDoubleListRepresentation(doubleList, canvas);
-               }
 
                 Comparacao<Object> comparator = (o1, o2) -> {
                     if (o1.getClass() == o2.getClass() && o1 instanceof Comparable) {
@@ -164,24 +153,36 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                     System.out.println("Comparator found: " + comparator);
                 }
 
+
+                if(isSimpleList(HeapObject)){
+                    System.out.println("Entrei na lista simples nao ordenada");
+                    ListaSimplesNaoOrdenada<?> simpleList=convertHeapObjectToListofLists(HeapObject, heapMap,canvas,comparator);
+                    System.out.println("Simple list converted "+simpleList);
+                    addSimpleListRepresentation(simpleList, canvas);
+                }
+               if(HeapObject.label.contains("ListaDuplaNaoOrdenada")){
+                   System.out.println("Entrei na lista dupla nao ordenada");
+                   ListaDuplaNaoOrdenada<?> doubleList=convertHeapObjectToDoubleList(HeapObject, heapMap);
+                   System.out.println("Double list converted "+doubleList);
+                   addDoubleListRepresentation(doubleList, canvas);
+               }
                if(isSortedSimpleList(HeapObject, heapMap)){
 
                    System.out.println("Entrei na lista Simples ordenada");
                    ListaSimplesOrdenada<Object> simpleSortedList = convertHeapObjectToSortedSimpleList(HeapObject, heapMap, comparator);
-                   System.out.println("Double list converted "+simpleSortedList);
+                   System.out.println("Sorted SImple list converted "+simpleSortedList);
                    addSortedSimpleListRepresentation(simpleSortedList, canvas);
                }
                if (isSortedDoubleList(HeapObject, heapMap)){
                    System.out.println("Entrei na lista Dupla ordenada");
                    ListaDuplaOrdenada<Object> doubleSortedList = convertHeapObjectToSortedDoubleList(HeapObject, heapMap, comparator);
-                   System.out.println("Double list converted "+doubleSortedList);
+                   System.out.println("Sorted Double list converted "+doubleSortedList);
                    addSortedDoubleListRepresentation(doubleSortedList, canvas);
 
                }
 
                 //determineAndRepresentHeapObject(heapObject, canvas,heapMap);
             }
-
         }
 
         if (canvas.representationWithInConnectorsByOwner.isEmpty()) {
@@ -235,9 +236,10 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         int index = 0;
         for (Object item : simpleList) {
             Point position = calculatePositionForListItem(index);
-            System.out.println("O que esta a passar"+(!(item instanceof ColecaoIteravel<?>)));
+            System.out.println("O que esta a passar"+item);
+            System.out.println("O que esta a passar"+(item instanceof ColecaoIteravel<?>));
             if (item instanceof ListaSimplesNaoOrdenada<?>) {
-
+                System.out.println("Estou aqui dentro 1\n\n");
 
                 RepresentationWithInConnectors existingRepresentation = findRepresentationForList((ListaSimplesNaoOrdenada<?>) item);
                 if (existingRepresentation != null) {
@@ -254,8 +256,62 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                     existingRepresentations.put(item, nestedListRepresentation);
                     refreshCanvas(canvas);
                 }
-            } else if(!(item instanceof ColecaoIteravel<?>)){
 
+            }
+            if (item instanceof ListaDuplaNaoOrdenada<?>) {
+                System.out.println("Estou aqui dentro 1\n\n");
+
+                RepresentationWithInConnectors existingRepresentation = findRepresentationForDoubleList((ListaDuplaNaoOrdenada<?>) item);
+                if (existingRepresentation != null) {
+                    // Connect to existing representation
+                    canvas.add(item, existingRepresentation);
+                    refreshCanvas(canvas);
+                } else {
+                    System.out.println("Existing Representation is null\n\n");
+                    // Create new representation
+                    UnsortedCircularDoubleLinkedListWithBaseRepresentation nestedListRepresentation =
+                            new UnsortedCircularDoubleLinkedListWithBaseRepresentation(position, (ListaDuplaNaoOrdenada<?>) item, canvas);
+                    //nestedListRepresentation.update();
+                    canvas.add(item, nestedListRepresentation);
+                    existingRepresentations.put(item, nestedListRepresentation);
+                    refreshCanvas(canvas);
+                }
+
+            }
+            if(item instanceof ListaSimplesOrdenada<?>){
+                RepresentationWithInConnectors existingRepresentation = findRepresentationForSortedList((ListaSimplesOrdenada<?>) item);
+                if (existingRepresentation != null) {
+                    // Connect to existing representation
+                    canvas.add(item, existingRepresentation);
+                    refreshCanvas(canvas);
+                } else {
+                    System.out.println("Existing Representation is null\n\n");
+                    // Create new representation
+                    SortedCircularSimpleLinkedListWithBaseMaxOrderRepresentation nestedListRepresentation =
+                            new SortedCircularSimpleLinkedListWithBaseMaxOrderRepresentation(position, (ListaSimplesOrdenada<?>) item, canvas);
+                    //nestedListRepresentation.update();
+                    canvas.add(item, nestedListRepresentation);
+                    existingRepresentations.put(item, nestedListRepresentation);
+                    refreshCanvas(canvas);
+                }
+            }
+            if(item instanceof ListaDuplaOrdenada<?>){
+                RepresentationWithInConnectors existingRepresentation = findRepresentationForSortedDoubleList((ListaDuplaOrdenada<?>) item);
+                if (existingRepresentation != null) {
+                    // Connect to existing representation
+                    canvas.add(item, existingRepresentation);
+                    refreshCanvas(canvas);
+                } else {
+                    System.out.println("Existing Representation is null\n\n");
+                    // Create new representation
+                    SortedCircularDoubleLinkedListWithBaseMaxOrderRepresentation nestedListRepresentation =
+                            new SortedCircularDoubleLinkedListWithBaseMaxOrderRepresentation(position, (ListaDuplaOrdenada<?>) item, canvas);
+                    //nestedListRepresentation.update();
+                    canvas.add(item, nestedListRepresentation);
+                    existingRepresentations.put(item, nestedListRepresentation);
+                    refreshCanvas(canvas);
+                }
+            }else if(!(item instanceof ColecaoIteravel<?>)){
            PrimitiveOrEnumRepresentation itemRepresentation = new PrimitiveOrEnumRepresentation(position, item, canvas);
            canvas.add(item, itemRepresentation);
            refreshCanvas(canvas);
@@ -263,6 +319,8 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
            }
             index++;
         }
+
+        System.out.println("Estou aqui dentro 2\n\n");
         UnsortedCircularSimpleLinkedListWithBaseRepresentation representation =
                 new UnsortedCircularSimpleLinkedListWithBaseRepresentation(new Point(START_X, START_Y), simpleList, canvas);
         canvas.add(simpleList, representation);
@@ -276,6 +334,33 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
     private RepresentationWithInConnectors findRepresentationForList(ListaSimplesNaoOrdenada<?> list) {
         for (Map.Entry<Object, RepresentationWithInConnectors> entry : existingRepresentations.entrySet()) {
             if (entry.getKey() instanceof ListaSimplesNaoOrdenada<?> && list.equals(entry.getKey())) {
+                return entry.getValue();
+            }
+        }
+        return null;
+    }
+
+    private RepresentationWithInConnectors findRepresentationForDoubleList(ListaDuplaNaoOrdenada<?> list) {
+        for (Map.Entry<Object, RepresentationWithInConnectors> entry : existingRepresentations.entrySet()) {
+            if (entry.getKey() instanceof ListaDuplaNaoOrdenada<?> && list.equals(entry.getKey())) {
+                return entry.getValue();
+            }
+        }
+        return null;
+    }
+
+    private RepresentationWithInConnectors findRepresentationForSortedList(ListaSimplesOrdenada<?> list) {
+        for (Map.Entry<Object, RepresentationWithInConnectors> entry : existingRepresentations.entrySet()) {
+            if (entry.getKey() instanceof ListaSimplesOrdenada<?> && list.equals(entry.getKey())) {
+                return entry.getValue();
+            }
+        }
+        return null;
+    }
+
+    private RepresentationWithInConnectors findRepresentationForSortedDoubleList(ListaDuplaOrdenada<?> list) {
+        for (Map.Entry<Object, RepresentationWithInConnectors> entry : existingRepresentations.entrySet()) {
+            if (entry.getKey() instanceof ListaDuplaOrdenada<?> && list.equals(entry.getKey())) {
                 return entry.getValue();
             }
         }
@@ -402,7 +487,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
             sortedSingleList.inserir(element);
             currentNodeRef = currentNode.fields.get("seguinte").reference;
         }
-
+        System.out.println("ISTO ESTA A DAR O QUE?::: " + sortedSingleList);
         return sortedSingleList;
     }
 
@@ -520,7 +605,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         }
         return simpleList;
     }
-    private ListaSimplesNaoOrdenada<Object> convertHeapObjectToListofLists(HeapObject heapObject, Map<Long, HeapEntity> heapMap, MyCanvas canvas) {
+    private ListaSimplesNaoOrdenada<Object> convertHeapObjectToListofLists(HeapObject heapObject, Map<Long, HeapEntity> heapMap, MyCanvas canvas,Comparacao<Object> comparator) {
         ListaSimplesNaoOrdenada<Object> list = new ListaSimplesNaoOrdenada<>();
         Value headValue = heapObject.fields.get("base"); // Start from the 'base'
         headValue = ((HeapObject)heapMap.get(headValue.reference)).fields.get("seguinte"); // Skip the sentinel node
@@ -549,6 +634,12 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                     ListaDuplaNaoOrdenada<?> innerList = convertHeapObjectToDoubleList(innerListObject, heapMap);
                     list.inserir(innerList);
                     //addDoubleListRepresentation(innerList, canvas);
+                } else if (innerListObject.label.contains("ListaSimplesOrdenada")) {
+                    ListaSimplesOrdenada<?> innerList = convertHeapObjectToSortedSimpleList(innerListObject, heapMap,comparator);
+                    list.inserir(innerList);
+                }else if (innerListObject.label.contains("ListaDuplaOrdenada")) {
+                    ListaDuplaOrdenada<?> innerList = convertHeapObjectToSortedDoubleList(innerListObject, heapMap,comparator);
+                    list.inserir(innerList);
                 }
             } else if (dataValue != null) {
                 // It's a direct value, add it to the current list
@@ -562,45 +653,6 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         }
         return list;
     }
-
-  // private ListaSimplesNaoOrdenada<Object> convertHeapListToSimpleList(HeapList heapList, Map<Long, HeapEntity> heapMap) {
-  //     ListaSimplesNaoOrdenada<Object> list = new ListaSimplesNaoOrdenada<>();
-  //     System.out.println("Converting HeapList with items count: " + heapList.items.size());
-
-  //     for (Value value : heapList.items) {
-  //         System.out.println("Processing Value: " + value);
-
-  //         if (value.type == Value.Type.REFERENCE) {
-  //             HeapEntity entity = heapMap.get(value.reference);
-  //             System.out.println("Retrieved entity from map: " + entity);
-
-  //             if (entity instanceof HeapObject) {
-  //                 ListaSimplesNaoOrdenada<Object> subList = convertHeapObjectToSimpleList((HeapObject) entity, heapMap);
-  //                 System.out.println("Converted subList: " + subList);
-  //                 list.inserir(subList);
-  //             }
-  //         }
-  //     }
-
-  //     System.out.println("Final converted list: " + list);  // Debugging output
-  //     return list;
-  // }
-
-
-
-
-  //private void representListOfLists(HeapList heapList, MyCanvas canvas, Map<Long, HeapEntity> heapMap) {
-  //    // Convert the entire HeapList to a single ListaSimplesNaoOrdenada
-  //    ListaSimplesNaoOrdenada<Object> simpleList = convertHeapListToSimpleList(heapList, heapMap);
-  //    // Represent the entire list of lists
-  //    addListofListsRepresentation(simpleList, canvas);
-
-
-
-
-
-  //    System.out.println("List of lists represented with reference arrows.");
-  //}
 
 
 

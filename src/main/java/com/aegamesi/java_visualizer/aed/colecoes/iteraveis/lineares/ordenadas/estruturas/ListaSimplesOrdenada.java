@@ -3,10 +3,12 @@ package com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.ordenadas.e
 import com.aegamesi.java_visualizer.aed.Comparacao;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.ColecaoIteravel;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.IteradorIteravel;
+import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.naoordenadas.estruturas.ListaSimplesNaoOrdenada;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.ordenadas.ColecaoIteravelLinearOrdenada;
 
 import java.io.Serializable;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
 /**
  * @author Actual code:
@@ -93,6 +95,37 @@ public class ListaSimplesOrdenada<T> implements ColecaoIteravelLinearOrdenada<T>
         }
 
         return ant;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ListaSimplesOrdenada<?>)) return false;
+        ListaSimplesOrdenada<?> that = (ListaSimplesOrdenada<?>) o;
+        if (this.numeroElementos != that.numeroElementos) return false;
+
+        ListaSimplesOrdenada.No thisCurrent = this.base.seguinte;
+        ListaSimplesOrdenada.No thatCurrent = (ListaSimplesOrdenada.No) that.base.seguinte;
+
+        while (thisCurrent != base && thatCurrent != that.base) {
+            if (!Objects.equals(thisCurrent.elemento, thatCurrent.elemento)) {
+                return false;
+            }
+            thisCurrent = thisCurrent.seguinte;
+            thatCurrent = thatCurrent.seguinte;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = 1;
+        ListaSimplesOrdenada.No current = base.seguinte;
+        while (current != base) {
+            result = 31 * result + (current.elemento != null ? current.elemento.hashCode() : 0);
+            current = current.seguinte;
+        }
+        return result;
     }
 
     @Override
