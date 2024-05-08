@@ -21,6 +21,7 @@ import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.nod
 import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.nodes.SimpleNodeRepresentation;
 import com.aegamesi.java_visualizer.utils.Vetor2D;
 import com.aegamesi.java_visualizer.aed.Comparacao;
+import com.intellij.ui.JBColor;
 import ui.graphics.representations.linked_lists.SortedCircularDoubleLinkedListWithBaseMaxOrderRepresentation;
 
 import javax.sound.midi.SysexMessage;
@@ -65,6 +66,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
     private Map<Object, RepresentationWithInConnectors> existingRepresentations = new HashMap<>();
     private Map<Long, Point> nodePositions = new HashMap<>();
     private Value currentIndex;
+    private String IteratorLabel ;
 
     private Point iteratorSquarePosition; // The position to draw the iterator square
     private Point iteratorTargetPosition; // The target position for the iterator's arrow
@@ -177,8 +179,8 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                    addDoubleListRepresentation(doubleList, canvas);
                }
                if(HeapObject.label.contains("Iterador")){
-                  String variableName=getVariableNameForHeapObject(trace, HeapObject.id);
-                  System.out.println("Variable name for HeapObject: "+variableName);
+                  IteratorLabel=getVariableNameForHeapObject(trace, HeapObject.id);
+                  System.out.println("Variable name for HeapObject: "+IteratorLabel);
                      System.out.println("Entrei no iterador");
                      currentIndex = HeapObject.fields.get("currentIndex");
                      addIteratorRepresentation(currentIndex);
@@ -248,6 +250,27 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
        repaint();
    }
 
+    private void drawIteratorWithLabel(Graphics2D g2, Point squarePosition, Point targetPosition, String label) {
+        // Draw the square
+        drawIteratorSquare(g2, squarePosition, label);
+
+        // Draw the arrow
+        drawArrow(g2, squarePosition, targetPosition);
+
+
+
+
+
+
+
+
+
+
+
+
+
+    }
+
     public String getVariableNameForHeapObject(ExecutionTrace trace, long heapObjectId) {
         for (Frame frame : trace.frames) {
             for (Map.Entry<String, Value> entry : frame.locals.entrySet()) {
@@ -261,7 +284,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
     }
 
     private void drawArrow(Graphics2D g2,Point from, Point to) {
-
+         g2.setColor(Color.RED);
         if (g2 == null) return; // Ensure g2 is not null
 
         try {
@@ -278,10 +301,12 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         }
     }
 
-    private void drawIteratorSquare(Graphics2D g2,Point position) {
+    private void drawIteratorSquare(Graphics2D g2,Point position,String iteratorLabel) {
 
-        g2.setColor(Color.RED);  // Set iterator square color
+        g2.setColor(Color.BLACK);   // Set iterator square color
         g2.fillRect(position.x - 5, position.y - 5, 10, 10);  // Draw a small square centered at the given position
+         // Set text color
+        g2.drawString(iteratorLabel, position.x - 5, position.y - 5);  // Draw the iterator label
         refreshCanvas(this);
     }
 
@@ -692,13 +717,9 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
-        AffineTransform transform = new AffineTransform(g2.getTransform());
-        transform.scale(zoom, zoom);
-        g2.setTransform(transform);
-
-
-
-
+        //AffineTransform transform = new AffineTransform(g2.getTransform());
+        //transform.scale(zoom, zoom);
+        //g2.setTransform(transform);
 
         for (RepresentationWithInConnectors representationWithInConnectors : representationWithInConnectorsByOwner.values()) {
             representationWithInConnectors.paint(g);
@@ -710,8 +731,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
             positionalGraphicElement.paint(g);
         }
         if (showIterator && iteratorSquarePosition != null && iteratorTargetPosition != null) {
-            drawIteratorSquare(g2,iteratorSquarePosition);
-            drawArrow(g2,iteratorSquarePosition,iteratorTargetPosition);
+            drawIteratorWithLabel(g2,iteratorSquarePosition,iteratorTargetPosition,IteratorLabel);
         }
 
 //        g.drawString( mousePosition.x + "," + mousePosition.y + "   ZOOM=" + zoom + "   SIZE=" + getSize().width + "x" + getSize().height, 10, 10);
