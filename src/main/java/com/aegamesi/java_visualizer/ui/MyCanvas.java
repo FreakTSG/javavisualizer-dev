@@ -16,10 +16,7 @@ import com.aegamesi.java_visualizer.ui.graphics.representations.DefaultRepresent
 import com.aegamesi.java_visualizer.ui.graphics.representations.PrimitiveOrEnumRepresentation;
 import com.aegamesi.java_visualizer.ui.graphics.representations.Representation;
 import com.aegamesi.java_visualizer.ui.graphics.representations.RepresentationWithInConnectors;
-import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.SortedCircularSimpleLinkedListAlsoWithBaseRepresentation;
-import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.SortedCircularSimpleLinkedListWithBaseMaxOrderRepresentation;
-import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.UnsortedCircularDoubleLinkedListWithBaseRepresentation;
-import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.UnsortedCircularSimpleLinkedListWithBaseRepresentation;
+import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.*;
 import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.nodes.DoubleNodeRepresentation;
 
 import com.aegamesi.java_visualizer.utils.Vetor2D;
@@ -33,6 +30,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
+import java.lang.reflect.Array;
 import java.util.*;
 
 
@@ -115,8 +113,30 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
             // Check if the entity is a list of lists (HeapList) and handle it separately
             if (entity instanceof HeapList) {
+
                 System.out.println("Processing a HeapList which might be a list of lists.");
                 HeapList heapList = (HeapList) entity;
+                System.out.println("HeapList items: " + heapList.items);
+                System.out.println("HeapList label: " + heapList.label);
+                System.out.println("HeapList id: " + heapList.id);
+                System.out.println("HeapList type: " + heapList.type);
+                System.out.println("HeapList Class: " + heapList.getClass());
+
+                if(heapList.label.contains("Integer")){
+                    System.out.println("Entrei no Integer");
+                    int length = heapList.items.size();
+                    Class<?> componentType = Integer.class;  // or dynamically determined
+                    Object array = Array.newInstance(componentType, length);
+
+                    for (int i = 0; i < length; i++) {
+                        Array.set(array, i, heapList.items.get(i).getLongValue().intValue());
+                    }
+                    ArrayRepresentation arrayRepresentation = new ArrayRepresentation(new Point(0, 0), array, "Integer", canvas);
+                    arrayRepresentation.init(); // Initialize the representation
+                    // Assuming you have a method to add this to the canvas
+                    canvas.add(arrayRepresentation.getCanvas()); // Method to add this representation to the canvas
+                }
+
 
                 //print whats inside the heaplist
                 for (Value value : heapList.items) {
@@ -137,7 +157,12 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                             }
                             break;
                     }
+                  // Array items= (Array) heapMap.get(value.reference);
+                  // ArrayRepresentation arrayRepresentation = new ArrayRepresentation(new Point(0, 0), items, "int", canvas);
+
                 }
+
+
 
             } else if (entity instanceof HeapObject ) {
 
