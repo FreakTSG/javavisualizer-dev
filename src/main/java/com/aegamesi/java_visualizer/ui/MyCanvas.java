@@ -132,9 +132,8 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                         Array.set(array, i, heapList.items.get(i).getLongValue().intValue());
                     }
                     ArrayRepresentation arrayRepresentation = new ArrayRepresentation(new Point(0, 0), array, "Integer", canvas);
-                    arrayRepresentation.init(); // Initialize the representation
                     // Assuming you have a method to add this to the canvas
-                    canvas.add(arrayRepresentation.getCanvas()); // Method to add this representation to the canvas
+                    canvas.add(array,arrayRepresentation ); // Method to add this representation to the canvas
                 }
 
 
