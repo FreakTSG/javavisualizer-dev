@@ -6,7 +6,8 @@ import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.naoordenadas
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.ordenadas.estruturas.ListaDuplaOrdenada;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.ordenadas.estruturas.ListaSimplesOrdenada;
 import com.aegamesi.java_visualizer.model.*;
-
+import com.aegamesi.java_visualizer.model.Frame;
+import com.intellij.ui.JBColor;
 import com.aegamesi.java_visualizer.ui.graphics.Connection;
 import com.aegamesi.java_visualizer.ui.graphics.OutConnector;
 import com.aegamesi.java_visualizer.ui.graphics.PositionalGraphicElement;
@@ -47,7 +48,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
 
     public static IDSToolWindow IDSToolWindow;
-    private static final int i = 0;
+    private static int i = 0;
     private final LinkedList<PositionalGraphicElement> positionalGraphicElements;
     //    private HashMap<Wrapper, RepresentationWithInConnectors> representationWithInConnectorsByOwner;
     private final HashMap<Object, RepresentationWithInConnectors> representationWithInConnectorsByOwner;
@@ -61,6 +62,12 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
     private static final int HORIZONTAL_SPACING = 50;
     private static final int VERTICAL_SPACING = 50;
     private Map<Object, RepresentationWithInConnectors> existingRepresentations = new HashMap<>();
+    private Map<Long, Point> nodePositions = new HashMap<>();
+    private String IteratorLabel ;
+    private boolean showIterator = false;
+    private Value currentIndex;
+    private Point iteratorSquarePosition; // The position to draw the iterator square
+    private Point iteratorTargetPosition; // The target position for the iterator's arrow
 
 
     public MyCanvas(IDSToolWindow IDSToolWindow) {
@@ -166,7 +173,15 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                    System.out.println("Double list converted "+doubleList);
                    addDoubleListRepresentation(doubleList, canvas);
                }
-               if(isSortedSimpleList(HeapObject, heapMap)){
+                if(HeapObject.label.contains("Iterador")){
+                    IteratorLabel=getVariableNameForHeapObject(trace, HeapObject.id);
+                    System.out.println("Variable name for HeapObject: "+IteratorLabel);
+                    System.out.println("Entrei no iterador");
+                    currentIndex = HeapObject.fields.get("currentIndex");
+                    addIteratorRepresentation(currentIndex);
+                    showIterator = true;
+                }
+                if(isSortedSimpleList(HeapObject, heapMap)){
 
                    System.out.println("Entrei na lista Simples ordenada");
                    ListaSimplesOrdenada<Object> simpleSortedList = convertHeapObjectToSortedSimpleList(HeapObject, heapMap, comparator);
@@ -191,6 +206,87 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
             System.out.println("Representations lista added to canvas: " + canvas.representationWithInConnectorsByOwner.size());
         }
         refreshCanvas(canvas);
+    }
+
+    private void addIteratorRepresentation(Value currentIndex) {
+        this.currentIndex = currentIndex;
+        System.out.println("Current Index: " + currentIndex);
+
+        // Initial position for the iterator square
+        this.iteratorSquarePosition  = new Point(50, 50);
+
+        if (currentIndex.longValue >= 0 && currentIndex.longValue <= 10) {
+            // Calculate the offset based on the currentIndex
+            int xOffset = 42 * (int) currentIndex.longValue;
+
+            // Fetch the initial node position and apply the calculated offset
+            Point originalPosition = nodePositions.get(currentIndex.longValue);
+            this.iteratorTargetPosition  = new Point(originalPosition.x + xOffset+45, originalPosition.y+28);
+
+
+        }
+        refreshCanvas(this);
+        repaint();
+    }
+
+    private void drawIteratorWithLabel(Graphics2D g2, Point squarePosition, Point targetPosition, String label) {
+        // Draw the square
+        drawIteratorSquare(g2, squarePosition, label);
+
+        // Draw the arrow
+        drawArrow(g2, squarePosition, targetPosition);
+
+
+
+
+
+
+
+
+
+
+
+
+
+    }
+
+    public String getVariableNameForHeapObject(ExecutionTrace trace, long heapObjectId) {
+        for (Frame frame : trace.frames) {
+            for (Map.Entry<String, Value> entry : frame.locals.entrySet()) {
+                Value value = entry.getValue();
+                if (value.type == Value.Type.REFERENCE && value.reference == heapObjectId) {
+                    return entry.getKey();
+                }
+            }
+        }
+        return null; // Return null if no variable name is found for the HeapObject
+    }
+
+    private void drawArrow(Graphics2D g2,Point from, Point to) {
+        g2.setColor(Color.RED);
+        if (g2 == null) return; // Ensure g2 is not null
+
+        try {
+            int x1= from.x;
+            int y1 = from.y;
+            int x2 = to.x;
+            int y2 = to.y;
+
+            g2.drawLine(x1, y1, x2, y2);
+
+        } finally {
+            g2.dispose(); // Properly dispose to avoid graphics context issues
+            repaint(); // Ensure repaint is called to update the canvas
+        }
+    }
+
+    private void drawIteratorSquare(Graphics2D g2,Point position,String iteratorLabel) {
+
+        g2.setColor(Color.BLACK);   // Set iterator square color
+        g2.fillRect(position.x - 5, position.y - 5, 10, 10);  // Draw a small square centered at the given position
+        // Set text color
+        g2.drawString(iteratorLabel, position.x - 5, position.y - 5);  // Draw the iterator label
+        refreshCanvas(this);
     }
 
     public static boolean isSortedSimpleList(HeapObject heapObject, Map<Long, HeapEntity> heapMap) {
@@ -324,6 +420,12 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         UnsortedCircularSimpleLinkedListWithBaseRepresentation representation =
                 new UnsortedCircularSimpleLinkedListWithBaseRepresentation(new Point(START_X, START_Y), simpleList, canvas);
         canvas.add(simpleList, representation);
+
+        Point var =representationWithInConnectorsByOwner.get(simpleList).getPosition();
+        System.out.println("Numero elementos: "+simpleList.getNumeroElementos());
+        for (i=0; i<=simpleList.getNumeroElementos(); i++){
+            nodePositions.put((long) i, var);
+        }
         System.out.println("Lista valores:" + simpleList);
         existingRepresentations.put(simpleList, representation);
         canvas.representationWithInConnectorsByOwner.put(simpleList, representation);
@@ -679,6 +781,10 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         }
         for (PositionalGraphicElement positionalGraphicElement : positionalGraphicElements) {
             positionalGraphicElement.paint(g);
+        }
+
+        if (showIterator && iteratorSquarePosition != null && iteratorTargetPosition != null) {
+            drawIteratorWithLabel(g2,iteratorSquarePosition,iteratorTargetPosition,IteratorLabel);
         }
 //        g.drawString( mousePosition.x + "," + mousePosition.y + "   ZOOM=" + zoom + "   SIZE=" + getSize().width + "x" + getSize().height, 10, 10);
 //        g.drawString("ActualFilename=->" + actualFilename + "<-" + mousePosition.x + "," + mousePosition.y + "   ZOOM=" + zoom + "   SIZE=" + getSize().width + "x" + getSize().height, 10, 10);
