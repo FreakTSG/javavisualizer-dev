@@ -54,6 +54,16 @@ public class Value {
 		}
 	}
 
+	public Number getLongValue() {
+		if (type == Type.LONG) {
+			return longValue;
+		} else if (type == Type.DOUBLE) {
+			return (long) doubleValue;
+		} else {
+			throw new IllegalStateException("Value is not a number");
+		}
+	}
+
 	public enum Type {
 		NULL, VOID, LONG, DOUBLE, BOOLEAN, STRING, CHAR, REFERENCE;
 	}
