@@ -233,17 +233,13 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
     private void addIteratorRepresentation(Value currentIndex) {
         this.currentIndex = currentIndex;
         System.out.println("Current Index: " + currentIndex);
+        Point originalPosition = nodePositions.get(currentIndex.longValue);
 
         // Initial position for the iterator square
-        this.iteratorSquarePosition  = new Point(50, 50);
+        this.iteratorSquarePosition  = new Point(originalPosition.x-50, originalPosition.y-50);
 
         if (currentIndex.longValue >= 0 && currentIndex.longValue <= 10) {
-            // Calculate the offset based on the currentIndex
-            int xOffset = 42 * (int) currentIndex.longValue;
-
-            // Fetch the initial node position and apply the calculated offset
-            Point originalPosition = nodePositions.get(currentIndex.longValue);
-            this.iteratorTargetPosition  = new Point(originalPosition.x + xOffset+45, originalPosition.y+28);
+            this.iteratorTargetPosition  = new Point(originalPosition.x , originalPosition.y);
 
 
         }
@@ -257,19 +253,6 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
         // Draw the arrow
         drawArrow(g2, squarePosition, targetPosition);
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
 
     public String getVariableNameForHeapObject(ExecutionTrace trace, long heapObjectId) {
@@ -442,12 +425,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         UnsortedCircularSimpleLinkedListWithBaseRepresentation representation =
                 new UnsortedCircularSimpleLinkedListWithBaseRepresentation(new Point(START_X, START_Y), simpleList, canvas);
         canvas.add(simpleList, representation);
-
-        Point var =representationWithInConnectorsByOwner.get(simpleList).getPosition();
-        System.out.println("Numero elementos: "+simpleList.getNumeroElementos());
-        for (i=0; i<=simpleList.getNumeroElementos(); i++){
-            nodePositions.put((long) i, var);
-        }
+        calculateNodePositions(simpleList);
         System.out.println("Lista valores:" + simpleList);
         existingRepresentations.put(simpleList, representation);
         canvas.representationWithInConnectorsByOwner.put(simpleList, representation);
@@ -533,18 +511,43 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                 canvas.add(item, itemRepresentation);
                 refreshCanvas(canvas);
 
-
+                index++;
             }
-            index++;
+
         }
         UnsortedCircularDoubleLinkedListWithBaseRepresentation representation =
                 new UnsortedCircularDoubleLinkedListWithBaseRepresentation(new Point(START_X, START_Y), doubleList, canvas);
         canvas.add(doubleList, representation);
+        calculateNodePositions(doubleList);
+
+       System.out.println("nodePositions:" + nodePositions);
         representation.update();
         existingRepresentations.put(doubleList, representation);
         canvas.representationWithInConnectorsByOwner.put(doubleList, representation);
         refreshCanvas(canvas);
 
+    }
+
+    private void calculateNodePositions(ListaDuplaNaoOrdenada<?> doubleList) {
+        Point var =representationWithInConnectorsByOwner.get(doubleList).getPosition();
+        System.out.println("Numero elementos: "+doubleList.getNumeroElementos());
+        int offset = 54;
+        for (i=0; i<=doubleList.getNumeroElementos(); i++){
+            Point position = new Point(var.x + i * offset+55, var.y+28);
+            nodePositions.put((long) i, position);
+        }
+    }
+    private void calculateNodePositions(ListaSimplesNaoOrdenada<?> simpleList) {
+        Point var = representationWithInConnectorsByOwner.get(simpleList).getPosition();
+        System.out.println("Numero elementos: " + simpleList.getNumeroElementos());
+        int offset = 42;
+
+        for (int i = 0; i <= simpleList.getNumeroElementos(); i++) {
+            Point position = new Point(var.x + i * offset+45, var.y+28); // Apply the offset incrementally
+            nodePositions.put((long) i, position);
+        }
+
+        System.out.println("nodePositions: " + nodePositions);
     }
 
 
