@@ -48,21 +48,11 @@ public class ArrayRepresentation extends GeneralRepresentation<Object> {
         container.setTopCellSpacing(4);
         String arrayElementSimpleTypeName = Utils.getClassSimpleName(owner.getClass().getName());
         Class<?> classForName;
-        if (Utils.isPrimitiveOrPrimitiveWrapperType(arrayElementSimpleTypeName) ||
-                Utils.isACompactReferenceableType(arrayElementSimpleTypeName) ||
-                ((classForName = Utils.getClassForName(owner.getClass().getName())) != null &&
-                        classForName.isEnum())) {
 
-        } else {
-            for (int i = 0; i < Array.getLength(owner); i++) {
-                Reference reference = new ArrayReference(owner, i, Location.CENTER, true) {
-                    @Override
-                    protected String getUnsetReferenceExpression() {
-                        return "null";
-                    }
-                };
-                container.add(createAggregateGraphicElementWithIndex(reference, i), Location.RIGHT);
-            }
+        for (int i = 0; i < Array.getLength(owner); i++) {
+            Object element = Array.get(owner, i);
+            String elementValue = (element != null) ? element.toString() : "null";
+            container.add(createAggregateGraphicElementWithIndex(new NormalTextElement(elementValue, ConstantsIDS.FONT_SIZE_TEXT), i), Location.LEFT);
         }
     }
 

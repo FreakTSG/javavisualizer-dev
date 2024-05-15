@@ -11,11 +11,9 @@ import com.aegamesi.java_visualizer.ui.graphics.Connection;
 import com.aegamesi.java_visualizer.ui.graphics.OutConnector;
 import com.aegamesi.java_visualizer.ui.graphics.PositionalGraphicElement;
 import com.aegamesi.java_visualizer.ui.graphics.StraightConnection;
+import com.aegamesi.java_visualizer.ui.graphics.aggregations.ArrayReference;
 import com.aegamesi.java_visualizer.ui.graphics.aggregations.Reference;
-import com.aegamesi.java_visualizer.ui.graphics.representations.DefaultRepresentation;
-import com.aegamesi.java_visualizer.ui.graphics.representations.PrimitiveOrEnumRepresentation;
-import com.aegamesi.java_visualizer.ui.graphics.representations.Representation;
-import com.aegamesi.java_visualizer.ui.graphics.representations.RepresentationWithInConnectors;
+import com.aegamesi.java_visualizer.ui.graphics.representations.*;
 import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.*;
 import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.nodes.DoubleNodeRepresentation;
 
