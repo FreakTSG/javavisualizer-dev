@@ -34,5 +34,26 @@ public class PrimitiveOrEnumRepresentation<TPrimitive extends Object> extends Ge
     public void edit(Point position) {
     }
 
+    public String getCreationCode() {
+//        return Utils.getCreationCode(owner.getValue());
+        //não pode ser o código de cima porque as classes dos primitivos têm muitos atributos
+        //e não há construtores que os recebam
+        //TEM de ser algo bem mais simples
+        Object ownerValue = owner;
+        Class<?> ownerValueClass = ownerValue.getClass();
+        if (ownerValueClass == String.class) {
+            return "\"" + ownerValue + "\"";
+        }
+        if (ownerValueClass == Character.class) {
+            Character charValue = (Character) ownerValue;
+            return charValue == 0 ? "0" : "'" + charValue + "'";
+        }
+        if (ownerValueClass.isEnum()) {
+//            idsToolWindow.addImportToEditorPaneSourceCode(fieldType.getName());
+            return ownerValueClass.getSimpleName() + "." + ownerValue;
+        }
+//        return "new " + Utils.getClassSimpleName(valueTypeName) + "(" + ownerValue + ")";
+        return String.valueOf(ownerValue);
 
+    }
 }

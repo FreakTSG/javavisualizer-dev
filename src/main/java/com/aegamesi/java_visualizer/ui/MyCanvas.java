@@ -30,7 +30,11 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.List;
 
 
 import static com.aegamesi.java_visualizer.model.HeapObject.*;
@@ -172,12 +176,18 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
                 HeapObject HeapObject = (HeapObject) entity;
 
+                System.out.println("Heao Onbject data:"+ HeapObject.fields );
+                System.out.println("Heao Onbject data:"+ HeapObject.label );
+                System.out.println("Heao Onbject data:"+ HeapObject );
+                System.out.println("Processing a HeapObject.");
+
                 Comparacao<Object> comparator = (o1, o2) -> {
                     if (o1.getClass() == o2.getClass() && o1 instanceof Comparable) {
                         return ((Comparable) o1).compareTo(o2);
                     }
                     throw new IllegalArgumentException("Unsupported object types for comparison");
                 };
+
                 if (HeapObject.label.contains("org.example.aed.Comparacao")) {
                     System.out.println("Comparator found: " + comparator);
                 }
@@ -216,7 +226,12 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                    System.out.println("Sorted Double list converted "+doubleSortedList);
                    addSortedDoubleListRepresentation(doubleSortedList, canvas);
 
+               }else{
+                   //Object converted = convertHeapObjectToObject(HeapObject, heapMap);
+                   //System.out.println("Entre funcoes: " + converted);
+                   addProjectEntityRepresentation(HeapObject, canvas);
                }
+
 
                 //determineAndRepresentHeapObject(heapObject, canvas,heapMap);
             }
@@ -548,6 +563,88 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         }
 
         System.out.println("nodePositions: " + nodePositions);
+    }
+
+    // Método auxiliar para calcular a posição inicial de um objeto no canvas
+    private Point calculatePositionForEntity(Object entity) {
+        // Lógica para calcular a posição do objeto no canvas
+        // Aqui você pode usar uma lógica simples ou mais complexa, dependendo das necessidades do seu layout
+        // Para simplicidade, vamos usar uma posição fixa ou baseada em uma lógica personalizada
+        return new Point(100, 100); // Exemplo de posição fixa
+    }
+
+    public Object convertHeapObjectToObject(HeapObject heapObject, Map<Long, HeapEntity> heapMap) {
+        if (heapObject == null) {
+            return null;
+        }
+
+        System.out.println("Bora ver dentro do Heap: " + heapObject);
+        System.out.println("Bora ver dentro do Heap: " + heapObject.label);
+
+        try {
+            // Obter o mapa de campos do objeto HeapObject
+            Map<String, Value> campos = heapObject.fields;
+
+            // Criar uma nova instância de objeto para armazenar os valores extraídos
+            Object instance = new Object();
+
+
+            // Iterar sobre os campos e definir seus valores na nova instância
+            for (Map.Entry<String, Value> entry : campos.entrySet()) {
+                String nomeCampo = entry.getKey();
+                Object valorCampo = entry.getValue();
+                // Definir o valor do campo na nova instância
+
+                // (Aqui você pode realizar ações específicas com os valores, como armazená-los em algum lugar)
+                System.out.println("Campo: " + nomeCampo + ", Valor: " + valorCampo);
+            }
+
+            instance = heapObject.fields;
+            System.out.println("Campo: " + instance);
+            return instance;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private void addProjectEntityRepresentation(Object entity, MyCanvas canvas) {
+        // Determine a posição inicial para a representação do objeto
+        System.out.println("Dentro da funcao addProjectEntity o objeto: " + entity);
+
+        Point position = calculatePositionForEntity(entity);
+
+
+        // Crie a representação do objeto
+        ProjectEntityRepresentation<Object> entityRepresentation = new ProjectEntityRepresentation<>(position, entity, canvas);
+
+        // Adicione a representação ao canvas
+        canvas.add(entity, entityRepresentation);
+        System.out.println("\n 3:::");
+        System.out.println("\n entityRepresentation"+entityRepresentation);
+        // Atualize a representação (caso necessário)
+        entityRepresentation.update();
+
+        // Armazene a representação no mapa de representações existentes
+        //existingRepresentations.put(entity, entityRepresentation);
+
+        // Adicione a representação aos conectores do canvas
+        //canvas.representationWithInConnectorsByOwner.put(entity, entityRepresentation);
+
+        // Atualize o canvas para refletir as mudanças
+        refreshCanvas(canvas);
+        // Print fields for debugging
+        Field[] fields = entity.getClass().getDeclaredFields();
+        for (Field field : fields) {
+            field.setAccessible(true);
+            try {
+                Object value = field.get(entity);
+                System.out.println(field.getName() + ": " + value);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 
