@@ -635,16 +635,6 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         // Atualize o canvas para refletir as mudanças
         refreshCanvas(canvas);
         // Print fields for debugging
-        Field[] fields = entity.getClass().getDeclaredFields();
-        for (Field field : fields) {
-            field.setAccessible(true);
-            try {
-                Object value = field.get(entity);
-                System.out.println(field.getName() + ": " + value);
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
 

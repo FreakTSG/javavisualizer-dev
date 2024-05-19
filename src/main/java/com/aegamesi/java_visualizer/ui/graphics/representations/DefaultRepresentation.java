@@ -60,7 +60,6 @@ public abstract class DefaultRepresentation<T extends Object> extends GeneralGen
                 aggregatesRectangularGraphicElementWithToolTip.add(fieldReference);
                 container.add(fieldReference, Location.LEFT);
                 if (fieldValue != null) {
-                    //TODO
                     final RepresentationWithInConnectors representableFieldValue = myCanvas.getRepresentationWithInConnectors(myCanvas.getRepresentationWithInConnectors(fieldValue));
                     createRepresentation(representableFieldValue, fieldReference, representableFieldValue == this);
                 }
