@@ -176,10 +176,8 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
                 HeapObject HeapObject = (HeapObject) entity;
 
-                System.out.println("Heao Onbject data:"+ HeapObject.fields );
                 System.out.println("Heao Onbject data:"+ HeapObject.label );
-                System.out.println("Heao Onbject data:"+ HeapObject );
-                System.out.println("Processing a HeapObject.");
+                System.out.println("O que esta aqui: " + (!HeapObject.label.contains("anonymous")&&!HeapObject.label.contains("No")&&!HeapObject.label.contains("NoComElemento")&&!HeapObject.label.contains("Base")));
 
                 Comparacao<Object> comparator = (o1, o2) -> {
                     if (o1.getClass() == o2.getClass() && o1 instanceof Comparable) {
@@ -198,37 +196,36 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                     ListaSimplesNaoOrdenada<?> simpleList=convertHeapObjectToListofLists(HeapObject, heapMap,canvas,comparator);
                     System.out.println("Simple list converted "+simpleList);
                     addSimpleListRepresentation(simpleList, canvas);
-                }
-               if(HeapObject.label.contains("ListaDuplaNaoOrdenada")){
+
+                } else if(HeapObject.label.contains("ListaDuplaNaoOrdenada")){
+
                    System.out.println("Entrei na lista dupla nao ordenada");
                    ListaDuplaNaoOrdenada<?> doubleList=convertHeapObjectToDoubleList(HeapObject, heapMap);
                    System.out.println("Double list converted "+doubleList);
                    addDoubleListRepresentation(doubleList, canvas);
-               }
-                if(HeapObject.label.contains("Iterador")){
+
+               }else if(HeapObject.label.contains("Iterador")){
+
                     IteratorLabel=getVariableNameForHeapObject(trace, HeapObject.id);
                     System.out.println("Variable name for HeapObject: "+IteratorLabel);
                     System.out.println("Entrei no iterador");
                     currentIndex = HeapObject.fields.get("currentIndex");
                     addIteratorRepresentation(currentIndex);
                     showIterator = true;
-                }
-                if(isSortedSimpleList(HeapObject, heapMap)){
+                }else if(isSortedSimpleList(HeapObject, heapMap)){
 
                    System.out.println("Entrei na lista Simples ordenada");
                    ListaSimplesOrdenada<Object> simpleSortedList = convertHeapObjectToSortedSimpleList(HeapObject, heapMap, comparator);
                    System.out.println("Sorted SImple list converted "+simpleSortedList);
                    addSortedSimpleListRepresentation(simpleSortedList, canvas);
-               }
-               if (isSortedDoubleList(HeapObject, heapMap)){
+               }else if (isSortedDoubleList(HeapObject, heapMap)){
                    System.out.println("Entrei na lista Dupla ordenada");
                    ListaDuplaOrdenada<Object> doubleSortedList = convertHeapObjectToSortedDoubleList(HeapObject, heapMap, comparator);
                    System.out.println("Sorted Double list converted "+doubleSortedList);
                    addSortedDoubleListRepresentation(doubleSortedList, canvas);
 
-               }else{
-                   //Object converted = convertHeapObjectToObject(HeapObject, heapMap);
-                   //System.out.println("Entre funcoes: " + converted);
+               }else if (!HeapObject.label.contains("anonymous")&&!HeapObject.label.contains("No")&&!HeapObject.label.contains("NoComElemento")&&!HeapObject.label.contains("Base")){
+
                    addProjectEntityRepresentation(HeapObject, canvas);
                }
 
@@ -621,8 +618,6 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
         // Adicione a representação ao canvas
         canvas.add(entity, entityRepresentation);
-        System.out.println("\n 3:::");
-        System.out.println("\n entityRepresentation"+entityRepresentation);
         // Atualize a representação (caso necessário)
         entityRepresentation.update();
 
