@@ -30,7 +30,7 @@ abstract public class GeneralGenericRepresentation<T extends Object> extends Gen
 
         // Desenhar a label em vez do nome da classe
         if (label == "Unknown"){
-            g.drawString(Utils.getClassSimpleName(owner.toString()), position.x, position.y);
+            g.drawString(Utils.getClassSimpleName(owner.getClass().getName()), position.x, position.y);
         }else {
             g.drawString(label, position.x, position.y);
         }
