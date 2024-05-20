@@ -46,9 +46,7 @@ public class FieldReference extends Reference implements AggregateRectangularGra
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.defaultWriteObject();
         out.writeObject(field.getName());
-//        System.out.println("WRITE " + fieldOwnerObjectOfWrapper.getValue() + " => " + field.getName());
     }
-
 
     public Field getField() {
         return field;
@@ -62,7 +60,6 @@ public class FieldReference extends Reference implements AggregateRectangularGra
     @Override
     public void setFieldValue(Object fieldValue) {
         Utils.setFieldValue(fieldOwnerObject, field, fieldValue);
-
     }
 
     @Override
@@ -70,14 +67,12 @@ public class FieldReference extends Reference implements AggregateRectangularGra
         super.paint(g);
         if (toolTipManager.isShowToolTipText()) {
             drawToolTipText(field.getName(), g);
-//        g.drawString(field.getName(), position.x + dimension.width + 10, position.y  + Constants.FONT_SIZE_TEXT);
         }
     }
 
     public void setShowToolTipText(boolean showToolTipText) {
         toolTipManager.setShowToolTipText(showToolTipText);
     }
-
 
     @Override
     protected String getUnsetReferenceExpression() {
@@ -92,26 +87,6 @@ public class FieldReference extends Reference implements AggregateRectangularGra
     public Object getFieldOwnerObject() {
         return fieldOwnerObject;
     }
-
-//    public ButtonBar getButtonBar() {
-//        final ButtonBar buttonBar = IDSToolWindow.getButtonBar(IDSToolWindow.DELETE_BUTTON_BAR);
-//        JButton button = buttonBar.getButton(IDSToolWindow.DELETE_BUTTON);
-//        for (ActionListener actionListener : button.getActionListeners()) {
-//            button.removeActionListener(actionListener);
-//        }
-//        button.addActionListener(e -> {
-//            if (getFieldValue() == null) {
-//                return;
-//            }
-//            //remove object reference
-//            setFieldValue(null);
-//            //remove visual connection
-//            Canvas canvas = MyCanvas.IDSToolWindow.getMyCanvas();
-//            canvas.remove(outConnector);
-//            canvas.repaint();
-//        });
-//        return buttonBar;
-//    }
 
 
 }

@@ -41,13 +41,15 @@ public abstract class DefaultRepresentation<T extends Object> extends GeneralGen
 
     public void update() {
         container.removeAllGraphicElements();
-        final Class<?> valueClass = owner.getClass();
-//        System.out.println(valueClass + " => número atributos: " + Utils.getAllFields(valueClass).size());
+        final Object ownervalue = owner;
+        final Class<?> valueClass = ownervalue.getClass();
+       System.out.println(valueClass + " => número atributos: " + Utils.getAllFields(valueClass).size());
         for (Field field : Utils.getAllFields(valueClass)) {
+            System.out.println("Quais sao os valores "+field);
             if (Modifier.isStatic(field.getModifiers())) {
                 continue;
             }
-            final Object fieldValue = Utils.getFieldValue(owner, field);
+            final Object fieldValue = Utils.getFieldValue(ownervalue, field);
             final String fieldTypeSimpleName = field.getType().getSimpleName();
             if (Utils.isPrimitiveOrPrimitiveWrapperType(fieldTypeSimpleName) || Utils.isACompactReferenceableType(fieldTypeSimpleName) || field.getType().isEnum()) {
                 NormalTextElement normalTextElement = new NormalTextElement(String.valueOf(fieldValue), ConstantsIDS.FONT_SIZE_TEXT, field.getName());
@@ -58,10 +60,8 @@ public abstract class DefaultRepresentation<T extends Object> extends GeneralGen
                 aggregatesRectangularGraphicElementWithToolTip.add(fieldReference);
                 container.add(fieldReference, Location.LEFT);
                 if (fieldValue != null) {
-                    //TODO
-//                    final WrapperWithValue wrapperWithValue = myCanvas.getWrapperWithValue(fieldValue);
-//                    final RepresentationWithInConnectors representableFieldValue = myCanvas.getRepresentationWithInConnectors(wrapperWithValue);
-//                    createRepresentation(representableFieldValue, fieldReference, representableFieldValue == this);
+                    final RepresentationWithInConnectors representableFieldValue = myCanvas.getRepresentationWithInConnectors(myCanvas.getRepresentationWithInConnectors(fieldValue));
+                    createRepresentation(representableFieldValue, fieldReference, representableFieldValue == this);
                 }
             }
         }
