@@ -549,6 +549,15 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
             nodePositions.put((long) i, position);
         }
     }
+    private void calculateNodePositions(ListaDuplaOrdenada<?> doubleList) {
+        Point var = representationWithInConnectorsByOwner.get(doubleList).getPosition();
+        System.out.println("Numero elementos: " + doubleList.getNumeroElementos());
+        int offset = 54;
+        for (i = 0; i <= doubleList.getNumeroElementos(); i++) {
+            Point position = new Point(var.x + i * offset + 55, var.y + 28);
+            nodePositions.put((long) i, position);
+        }
+    }
     private void calculateNodePositions(ListaSimplesNaoOrdenada<?> simpleList) {
         Point var = representationWithInConnectorsByOwner.get(simpleList).getPosition();
         System.out.println("Numero elementos: " + simpleList.getNumeroElementos());
@@ -631,6 +640,20 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         refreshCanvas(canvas);
         // Print fields for debugging
     }
+    private void calculateNodePositions(ListaSimplesOrdenada<?> simpleList) {
+        Point var = representationWithInConnectorsByOwner.get(simpleList).getPosition();
+        System.out.println("Numero elementos: " + simpleList.getNumeroElementos());
+        int offset = 42;
+
+        for (int i = 0; i <= simpleList.getNumeroElementos(); i++) {
+            Point position = new Point(var.x + i * offset+45, var.y+28); // Apply the offset incrementally
+            nodePositions.put((long) i, position);
+        }
+
+        System.out.println("nodePositions: " + nodePositions);
+    }
+
+
 
 
     private void addSortedSimpleListRepresentation(ListaSimplesOrdenada<?> simpleList, MyCanvas canvas) {
@@ -647,11 +670,14 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         SortedCircularSimpleLinkedListWithBaseMaxOrderRepresentation sortedSingleList =
                 new SortedCircularSimpleLinkedListWithBaseMaxOrderRepresentation(new Point(0, 0), simpleList, canvas); // Adjust the position as needed
         canvas.add(simpleList, sortedSingleList);
+        calculateNodePositions(simpleList);
         System.out.println("Lista valores:" + simpleList);
         existingRepresentations.put(simpleList, sortedSingleList);
         canvas.representationWithInConnectorsByOwner.put(simpleList, sortedSingleList);
         refreshCanvas(canvas);
     }
+
+
 
     private void addSortedDoubleListRepresentation(ListaDuplaOrdenada<?> doubleList, MyCanvas canvas) {
         // Logic to create a visual representation for the double list and add it to the canvas
@@ -667,11 +693,15 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                 new SortedCircularDoubleLinkedListWithBaseMaxOrderRepresentation(new Point(0, 0), doubleList, canvas); // Adjust the position as needed
         canvas.add(doubleList, sortedDoubleList);
         sortedDoubleList.update();
+        calculateNodePositions(doubleList);
         System.out.println("Lista valores:" + doubleList);
         existingRepresentations.put(doubleList, sortedDoubleList);
         canvas.representationWithInConnectorsByOwner.put(doubleList, sortedDoubleList);
         refreshCanvas(canvas);
     }
+
+
+
     private ListaSimplesOrdenada<Object> convertHeapObjectToSortedSimpleList(HeapObject heapObject, Map<Long, HeapEntity> heapMap, Comparacao<Object> comparator) {
         if (comparator == null) {
             throw new IllegalArgumentException("Comparator must not be null.");
