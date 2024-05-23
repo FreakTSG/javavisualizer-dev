@@ -20,6 +20,7 @@ import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.nod
 
 import com.aegamesi.java_visualizer.utils.Vetor2D;
 import com.aegamesi.java_visualizer.aed.Comparacao;
+import org.w3c.dom.Node;
 import ui.graphics.representations.linked_lists.SortedCircularDoubleLinkedListWithBaseMaxOrderRepresentation;
 
 import javax.swing.*;
@@ -63,7 +64,6 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
     private static final int VERTICAL_SPACING = 50;
     private Map<Object, RepresentationWithInConnectors> existingRepresentations = new HashMap<>();
     private Map<Long, Point> nodePositions = new HashMap<>();
-    private String IteratorLabel ;
     private boolean showIterator = false;
     private Value currentIndex;
     private Point iteratorSquarePosition; // The position to draw the iterator square
@@ -204,15 +204,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                    System.out.println("Double list converted "+doubleList);
                    addDoubleListRepresentation(doubleList, canvas);
 
-               }else if(HeapObject.label.contains("Iterador")){
-
-                    IteratorLabel=getVariableNameForHeapObject(trace, HeapObject.id);
-                    System.out.println("Variable name for HeapObject: "+IteratorLabel);
-                    System.out.println("Entrei no iterador");
-                    currentIndex = HeapObject.fields.get("currentIndex");
-                    addIteratorRepresentation(currentIndex);
-                    showIterator = true;
-                }else if(isSortedSimpleList(HeapObject, heapMap)){
+               }else if(isSortedSimpleList(HeapObject, heapMap)){
 
                    System.out.println("Entrei na lista Simples ordenada");
                    ListaSimplesOrdenada<Object> simpleSortedList = convertHeapObjectToSortedSimpleList(HeapObject, heapMap, comparator);
@@ -229,6 +221,11 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                    addProjectEntityRepresentation(HeapObject, canvas);
                }
 
+                System.out.println("Entrei no iterador");
+                //currentIndex = HeapObject.fields.get("currentIndex");
+                addIteratorRepresentation(canvas, HeapObject);
+                showIterator = true;
+
 
                 //determineAndRepresentHeapObject(heapObject, canvas,heapMap);
             }
@@ -242,7 +239,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         refreshCanvas(canvas);
     }
 
-    private void addIteratorRepresentation(Value currentIndex) {
+    /*private void addIteratorRepresentation(Value currentIndex) {
         this.currentIndex = currentIndex;
         System.out.println("Current Index: " + currentIndex);
         Point originalPosition = nodePositions.get(currentIndex.longValue);
@@ -257,15 +254,49 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         }
         refreshCanvas(this);
         repaint();
+    }*/
+
+    private void addIteratorRepresentation(MyCanvas canvas, Object list) {
+        Point lastNodePosition = null;
+        // Obtém a posição do último nó criado
+        if (!nodePositions.isEmpty()) {
+            // Obtém a última chave (número do nó) no mapa
+            long lastNodeKey = Collections.max(nodePositions.keySet());
+
+            // Obtém a posição associada à última chave
+            lastNodePosition = nodePositions.get(lastNodeKey);
+
+            // Atualiza a posição do iterador para apontar para o último nó
+            this.iteratorSquarePosition = new Point(lastNodePosition.x - 50, lastNodePosition.y - 50);
+            this.iteratorTargetPosition  = new Point(lastNodePosition.x , lastNodePosition.y);
+
+            System.out.println("Onde esta o ultimo nó: " + lastNodePosition);
+            // Atualiza a interface gráfica
+            refreshCanvas(canvas);
+            repaint();
+        } else {
+            System.out.println("O mapa nodePositions está vazio.");
+        }
+
     }
 
-    private void drawIteratorWithLabel(Graphics2D g2, Point squarePosition, Point targetPosition, String label) {
+    private void drawIteratorWithLabel(Graphics2D g2, Point squarePosition, Point targetPosition) {
         // Draw the square
-        drawIteratorSquare(g2, squarePosition, label);
+        drawIteratorSquare(g2, squarePosition);
 
         // Draw the arrow
         drawArrow(g2, squarePosition, targetPosition);
     }
+
+    private void drawIteratorSquare(Graphics2D g2,Point position) {
+
+        g2.setColor(Color.BLACK);   // Set iterator square color
+        g2.fillRect(position.x - 5, position.y - 5, 10, 10);  // Draw a small square centered at the given position
+        // Set text color
+        g2.drawString("Iterador", position.x - 5, position.y - 5);  // Draw the iterator label
+        refreshCanvas(this);
+    }
+
 
     public String getVariableNameForHeapObject(ExecutionTrace trace, long heapObjectId) {
         for (Frame frame : trace.frames) {
@@ -297,14 +328,6 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         }
     }
 
-    private void drawIteratorSquare(Graphics2D g2,Point position,String iteratorLabel) {
-
-        g2.setColor(Color.BLACK);   // Set iterator square color
-        g2.fillRect(position.x - 5, position.y - 5, 10, 10);  // Draw a small square centered at the given position
-        // Set text color
-        g2.drawString(iteratorLabel, position.x - 5, position.y - 5);  // Draw the iterator label
-        refreshCanvas(this);
-    }
 
     public static boolean isSortedSimpleList(HeapObject heapObject, Map<Long, HeapEntity> heapMap) {
         if (heapObject.fields.containsKey("base") && heapObject.fields.containsKey("criterio")) {
@@ -568,7 +591,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
             nodePositions.put((long) i, position);
         }
 
-        System.out.println("nodePositions: " + nodePositions);
+        System.out.println("nodePositions na ListaNaoOrdenada: " + nodePositions);
     }
 
     // Método auxiliar para calcular a posição inicial de um objeto no canvas
@@ -650,7 +673,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
             nodePositions.put((long) i, position);
         }
 
-        System.out.println("nodePositions: " + nodePositions);
+        System.out.println("nodePositions na ListaOrdenada: " + nodePositions);
     }
 
 
@@ -921,7 +944,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         }
 
         if (showIterator && iteratorSquarePosition != null && iteratorTargetPosition != null) {
-            drawIteratorWithLabel(g2,iteratorSquarePosition,iteratorTargetPosition,IteratorLabel);
+            drawIteratorWithLabel(g2,iteratorSquarePosition,iteratorTargetPosition);
         }
 //        g.drawString( mousePosition.x + "," + mousePosition.y + "   ZOOM=" + zoom + "   SIZE=" + getSize().width + "x" + getSize().height, 10, 10);
 //        g.drawString("ActualFilename=->" + actualFilename + "<-" + mousePosition.x + "," + mousePosition.y + "   ZOOM=" + zoom + "   SIZE=" + getSize().width + "x" + getSize().height, 10, 10);
