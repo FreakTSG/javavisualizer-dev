@@ -75,6 +75,7 @@ abstract public class Reference extends AggregateRectangularGraphicElement {
     }
 
     @Override
+
     public PositionalGraphicElement getPositionalGraphicElement(Point position) {
         PositionalGraphicElement positionalGraphicElement = outConnector.getPositionalGraphicElement(position);
         if (positionalGraphicElement != null) {

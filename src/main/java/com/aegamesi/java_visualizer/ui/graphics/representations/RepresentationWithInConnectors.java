@@ -43,6 +43,10 @@ abstract public class RepresentationWithInConnectors<T extends Object> extends R
         return referenceCount != 0;
     }
 
+    public InConnector getFirstInConnector() {
+        InConnector[] connectors = getInConnectors();
+        return connectors.length > 0 ? connectors[0] : null;
+    }
     //free any resource (ex: connections) before destroy this object
     public void dispose() {
 

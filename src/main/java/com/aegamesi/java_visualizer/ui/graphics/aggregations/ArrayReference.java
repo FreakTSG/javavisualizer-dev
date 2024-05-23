@@ -1,16 +1,12 @@
 package com.aegamesi.java_visualizer.ui.graphics.aggregations;
 
-
-import  com.aegamesi.java_visualizer.ui.graphics.localizations.Location;
-//import  com.aegamesi.java_visualizer.ui.operators.Operator;
-//import  com.aegamesi.java_visualizer.wrapper_classes.ArrayWrapper;
-
+import com.aegamesi.java_visualizer.ui.graphics.OutConnector;
+import com.aegamesi.java_visualizer.ui.graphics.localizations.Location;
 import java.awt.*;
 import java.lang.reflect.Array;
 
-public abstract class ArrayReference extends Reference {
+public class ArrayReference extends Reference {
     private static final long serialVersionUID = 1L;
-
     protected Object arrayWrapper;
     protected int index;
 
@@ -26,6 +22,8 @@ public abstract class ArrayReference extends Reference {
         super(position, dimension, arrayWrapper.getClass(), outConnectorLocation, manuallyAssigned);
         this.arrayWrapper = arrayWrapper;
         this.index = index;
+        this.outConnector = new OutConnector(position, this, arrayWrapper.getClass().getComponentType());
+        System.out.println("Created ArrayReference for index " + index + " pointing to " + getFieldValue());
     }
 
     @Override
@@ -38,10 +36,10 @@ public abstract class ArrayReference extends Reference {
         Array.set(arrayWrapper, index, fieldValue);
     }
 
-  // @Override
-  // protected String getUnsetReferenceExpression() {
-  //     return Operator.getCanvas().getFirstReferenceTo(arrayWrapper) + "[" + index + "] = null";
-  // }
+    @Override
+    protected String getUnsetReferenceExpression() {
+        return arrayWrapper.toString() + "[" + index + "] = null";
+    }
 
     @Override
     public String getCompleteTypeName() {
@@ -55,6 +53,4 @@ public abstract class ArrayReference extends Reference {
     public int getIndex() {
         return index;
     }
-
-
 }

@@ -4,7 +4,7 @@ import com.aegamesi.java_visualizer.ui.graphics.representations.RepresentationWi
 
 import java.awt.*;
 
-public class StraightConnection<TOutConnector extends OutConnector, TRepresentationObject extends RepresentationWithInConnectors> extends Connection<TOutConnector, TRepresentationObject> {
+public class StraightConnection<TOutConnector extends OutConnector, TRepresentationObject extends RepresentationWithInConnectors<?>> extends Connection<TOutConnector, TRepresentationObject> {
     private static final long serialVersionUID = 1L;
 
 

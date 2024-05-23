@@ -7,19 +7,19 @@ import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.ordenadas.es
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.ordenadas.estruturas.ListaSimplesOrdenada;
 import com.aegamesi.java_visualizer.model.*;
 import com.aegamesi.java_visualizer.model.Frame;
-import com.intellij.ui.JBColor;
 import com.aegamesi.java_visualizer.ui.graphics.Connection;
 import com.aegamesi.java_visualizer.ui.graphics.OutConnector;
 import com.aegamesi.java_visualizer.ui.graphics.PositionalGraphicElement;
 import com.aegamesi.java_visualizer.ui.graphics.StraightConnection;
 import com.aegamesi.java_visualizer.ui.graphics.aggregations.ArrayReference;
 import com.aegamesi.java_visualizer.ui.graphics.aggregations.Reference;
+import com.aegamesi.java_visualizer.ui.graphics.localizations.Location;
 import com.aegamesi.java_visualizer.ui.graphics.representations.*;
 import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.*;
-import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.nodes.DoubleNodeRepresentation;
 
 import com.aegamesi.java_visualizer.utils.Vetor2D;
 import com.aegamesi.java_visualizer.aed.Comparacao;
+import com.github.weisj.jsvg.S;
 import ui.graphics.representations.linked_lists.SortedCircularDoubleLinkedListWithBaseMaxOrderRepresentation;
 
 import javax.swing.*;
@@ -30,17 +30,10 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
 import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.*;
-import java.util.List;
 
 
 import static com.aegamesi.java_visualizer.model.HeapObject.*;
-import static com.aegamesi.java_visualizer.model.Value.Type.LONG;
-import static com.aegamesi.java_visualizer.model.Value.Type.STRING;
-import static com.aegamesi.java_visualizer.ui.IDSToolWindow.myCanvas;
 
 public class MyCanvas extends JPanel implements MouseListener, MouseMotionListener {
     private RepresentationWithInConnectors draggedRepresentation = null;
@@ -104,6 +97,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
             oldConnection.getTarget().decrementReferenceCount();
         }
         connectionByOutConnector.put(connection.getSource(), connection);
+        refresh();
     }
 
     public void updateRepresentations(ExecutionTrace trace) {
@@ -131,19 +125,10 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                 System.out.println("HeapList type: " + heapList.type);
                 System.out.println("HeapList Class: " + heapList.getClass());
 
-                if(heapList.label.contains("Integer")){
-                    System.out.println("Entrei no Integer");
-                    int length = heapList.items.size();
-                    Class<?> componentType = Integer.class;  // or dynamically determined
-                    Object array = Array.newInstance(componentType, length);
 
-                    for (int i = 0; i < length; i++) {
-                        Array.set(array, i, heapList.items.get(i).getLongValue().intValue());
-                    }
-                    ArrayRepresentation arrayRepresentation = new ArrayRepresentation(new Point(0, 0), array, "Integer", canvas);
-                    // Assuming you have a method to add this to the canvas
-                    canvas.add(array,arrayRepresentation ); // Method to add this representation to the canvas
-                }
+                    System.out.println("Entrei no Integer");
+                    createListRepresentation(heapList, heapMap, canvas);
+                    refreshCanvas(canvas);
 
 
                 //print whats inside the heaplist
@@ -240,6 +225,113 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
             System.out.println("Representations lista added to canvas: " + canvas.representationWithInConnectorsByOwner.size());
         }
         refreshCanvas(canvas);
+        canvas.repaint();
+    }
+
+    private void createListRepresentation(HeapList heapList, Map<Long, HeapEntity> heapMap, MyCanvas canvas) {
+        System.out.println("Processing a HeapList which might be a list of lists.");
+
+        if (heapList.items.isEmpty()) {
+            System.out.println("HeapList is empty.");
+            return;
+        }
+
+        Value firstValue = heapList.items.get(0);
+        System.out.println("First value in the HeapList: " + firstValue.reference + " type" + firstValue.type);
+        Class<?> componentType = determineComponentType(firstValue, heapMap);
+
+        if (componentType != null) {
+            int length = heapList.items.size();
+            Object array = Array.newInstance(componentType, length);
+
+            for (int i = 0; i < length; i++) {
+                Value value = heapList.items.get(i);
+                Object element = getElement(value, componentType, heapMap);
+                Array.set(array, i, element);
+            }
+            ArrayRepresentation arrayRepresentation = new ArrayRepresentation(new Point(0, 0), array, componentType.getSimpleName(), canvas);
+            canvas.add(array, arrayRepresentation);
+
+            for (int i = 0; i < length; i++) {
+                Value value = heapList.items.get(i);
+                if (value.type == Value.Type.REFERENCE) {
+                    long targetId = value.reference;
+                    RepresentationWithInConnectors<?> targetRepresentation = representationWithInConnectorsByOwner.get(targetId);
+                    if (targetRepresentation != null) {
+                        ArrayReference arrayReference = new ArrayReference(array, i, Location.CENTER, true);
+                        arrayRepresentation.add(arrayReference.getOutConnector(), targetRepresentation);
+                    } else {
+                        System.err.println("Target representation not found for ID: " + targetId);
+                    }
+                }
+            }
+
+
+            refreshCanvas(canvas);
+            System.out.println("Added ArrayRepresentation to canvas.");
+        } else {
+            System.out.println("Component type is null. Unable to create array.");
+        }
+    }
+
+    public RepresentationWithInConnectors<?> wrapObjectIfNeeded(Object targetObject) {
+        if (targetObject instanceof HeapObject) {
+            RepresentationWithInConnectors<?> representation = representationWithInConnectorsByOwner.get(targetObject);
+            if (representation == null) {
+                representation = new ProjectEntityRepresentation<>(new Point(0, 0), targetObject, this);
+                add(targetObject, representation);
+                representationWithInConnectorsByOwner.put(targetObject, representation);
+            }
+            return representation;
+        } else if (targetObject instanceof HeapList) {
+           // createListRepresentation((HeapList) targetObject, buildHeapMap(trace), this);
+            return representationWithInConnectorsByOwner.get(targetObject);
+        }
+        return null;
+    }
+
+    private Class<?> determineComponentType(Value value, Map<Long, HeapEntity> heapMap) {
+        switch (value.type) {
+            case LONG:
+                return Long.class;
+            case STRING:
+                return String.class;
+            case REFERENCE:
+                HeapEntity entity = heapMap.get(value.reference);
+                if (entity instanceof HeapObject) {
+                    return getHeapObjectClass((HeapObject) entity);
+                }
+                break;
+            default:
+                return Object.class;
+        }
+        return null;
+    }
+
+    private Class<?> getHeapObjectClass(HeapObject heapObject) {
+        // Here you need to determine how to get the actual class of the HeapObject
+        // This is a placeholder implementation
+
+        // Add other cases as needed
+        return Object.class;
+    }
+
+    private Object getElement(Value value, Class<?> componentType, Map<Long, HeapEntity> heapMap) {
+        switch (value.type) {
+            case LONG:
+                return value.longValue; // Assuming LONG should map to Integer
+            case STRING:
+                return value.stringValue;
+            case REFERENCE:
+                HeapEntity entity = heapMap.get(value.reference);
+                if (entity instanceof HeapObject) {
+                    return entity;
+                }
+                break;
+            default:
+                return null;
+        }
+        return null;
     }
 
     private void addIteratorRepresentation(Value currentIndex) {
@@ -627,6 +719,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
         // Adicione a representação ao canvas
         canvas.add(entity, entityRepresentation);
+        representationWithInConnectorsByOwner.put(entity, entityRepresentation);
         // Atualize a representação (caso necessário)
         entityRepresentation.update();
 
@@ -919,6 +1012,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         for (PositionalGraphicElement positionalGraphicElement : positionalGraphicElements) {
             positionalGraphicElement.paint(g);
         }
+
 
         if (showIterator && iteratorSquarePosition != null && iteratorTargetPosition != null) {
             drawIteratorWithLabel(g2,iteratorSquarePosition,iteratorTargetPosition,IteratorLabel);

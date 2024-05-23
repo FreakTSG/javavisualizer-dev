@@ -44,4 +44,19 @@ public class HeapObject extends HeapEntity {
 	}
 
 
+    public Class<?> getActualClass() {
+		if (fields.containsKey("class")) {
+			return fields.get("class").getActualClass();
+		} else {
+			return null;
+		}
+	}
+
+	public String getClassName() {
+		if (fields.containsKey("class")) {
+			return fields.get("class").stringValue;
+		} else {
+			return null;
+		}
+    }
 }

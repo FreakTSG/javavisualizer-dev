@@ -2,6 +2,7 @@ package com.aegamesi.java_visualizer.ui.graphics.aggregations;
 
 import com.aegamesi.java_visualizer.ui.ConstantsIDS;
 import com.aegamesi.java_visualizer.ui.graphics.RectangularGraphicElement;
+import com.intellij.ui.JBColor;
 
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
@@ -14,7 +15,7 @@ public class AggregateRectangularGraphicElement extends RectangularGraphicElemen
     protected AggregateRectangularGraphicElement parent;
 
     public AggregateRectangularGraphicElement(Point position, Dimension dimension) {
-        this(position, dimension, Color.BLACK, TRANSPARENT_COLOR);
+        this(position, dimension, JBColor.BLACK, TRANSPARENT_COLOR);
     }
 
     public AggregateRectangularGraphicElement(Point position, Dimension dimension, Color borderColor, Color backgroundColor) {

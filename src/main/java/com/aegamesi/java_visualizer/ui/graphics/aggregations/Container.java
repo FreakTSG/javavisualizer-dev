@@ -134,6 +134,7 @@ public class Container extends AggregateRectangularGraphicElement {
         return maxHeight;
     }
 
+
     public void add(AggregateRectangularGraphicElement aggregateGraphicElement) {
         add(aggregateGraphicElement, Location.CENTER);
     }

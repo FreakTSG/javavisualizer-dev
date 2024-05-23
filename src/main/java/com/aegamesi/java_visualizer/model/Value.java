@@ -64,6 +64,25 @@ public class Value {
 		}
 	}
 
+	public Class<?> getActualClass() {
+		switch (type) {
+			case STRING:
+				return String.class;
+			case LONG:
+				return Long.class;
+			case DOUBLE:
+				return Double.class;
+			case BOOLEAN:
+				return Boolean.class;
+			case CHAR:
+				return Character.class;
+			case REFERENCE:
+				return Object.class;
+			default:
+				return null;
+		}
+	}
+
 	public enum Type {
 		NULL, VOID, LONG, DOUBLE, BOOLEAN, STRING, CHAR, REFERENCE;
 	}

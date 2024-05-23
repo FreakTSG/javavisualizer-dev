@@ -1,20 +1,18 @@
 package com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists;
 
 import com.aegamesi.java_visualizer.ui.MyCanvas;
+import com.aegamesi.java_visualizer.ui.graphics.*;
 import com.aegamesi.java_visualizer.ui.graphics.representations.GeneralRepresentation;
 
 import com.aegamesi.java_visualizer.ui.ConstantsIDS;
 import com.aegamesi.java_visualizer.ui.IDSToolWindow;
-import com.aegamesi.java_visualizer.ui.graphics.GraphicElement;
-import com.aegamesi.java_visualizer.ui.graphics.OutConnector;
-import com.aegamesi.java_visualizer.ui.graphics.PositionalGraphicElement;
-import com.aegamesi.java_visualizer.ui.graphics.StraightConnection;
 import com.aegamesi.java_visualizer.ui.graphics.aggregations.*;
 import com.aegamesi.java_visualizer.ui.graphics.localizations.Location;
 import com.aegamesi.java_visualizer.ui.graphics.representations.Representation;
 import com.aegamesi.java_visualizer.ui.graphics.representations.RepresentationWithInConnectors;
 import com.aegamesi.java_visualizer.utils.Utils;
 import com.aegamesi.java_visualizer.ui.graphics.aggregations.Container;
+import com.github.weisj.jsvg.S;
 
 
 import java.awt.*;
@@ -22,15 +20,11 @@ import java.lang.reflect.Array;
 
 public class ArrayRepresentation extends GeneralRepresentation<Object> {
     private static final long serialVersionUID = 1L;
-
-
     private String componentTypeName;
 
-//    private ArrayList<AggregateGraphicElementContainer> aggregateGraphicElementContainers;
-//    private ArrayList<Container> containersToDeepRemove;
-
-    private ArrayRepresentation(Object owner, String componentTypeName, MyCanvas canvas) {
-        this(new Point(), owner, componentTypeName, canvas);
+    public ArrayRepresentation(Object owner, String componentTypeName, MyCanvas canvas) {
+        super(new Point(), owner, canvas, true);
+        this.componentTypeName = componentTypeName;
     }
 
     public ArrayRepresentation(Point position, Object owner, String componentTypeName, MyCanvas canvas) {
@@ -43,26 +37,58 @@ public class ArrayRepresentation extends GeneralRepresentation<Object> {
         container.setLeftCellSpacing(0);
         container.setInnerCellSpacing(0);
 
-
         container.setHorizontal(false);
         container.setTopCellSpacing(4);
-        String arrayElementSimpleTypeName = Utils.getClassSimpleName(owner.getClass().getName());
-        Class<?> classForName;
 
-        for (int i = 0; i < Array.getLength(owner); i++) {
-            Object element = Array.get(owner, i);
-            String elementValue = (element != null) ? element.toString() : "null";
-            container.add(createAggregateGraphicElementWithIndex(new NormalTextElement(elementValue, ConstantsIDS.FONT_SIZE_TEXT), i), Location.LEFT);
+        System.out.println("owner = " + owner);
+        System.out.println("Array.getLength(owner) = " + Array.getLength(owner));
+
+        if (isArrayOfPrimitivesOrEnums(owner)) {
+            for (int i = 0; i < Array.getLength(owner); i++) {
+                Object element = Array.get(owner, i);
+                String elementValue = (element != null) ? element.toString() : "null";
+                System.out.println("Adding primitive/enum element at index " + i + ": " + elementValue);
+                container.add(createAggregateGraphicElementWithIndex(new NormalTextElement(elementValue, ConstantsIDS.FONT_SIZE_TEXT), i), Location.LEFT);
+            }
+        } else {
+            for (int i = 0; i < Array.getLength(owner); i++) {
+                Reference reference = new ArrayReference(owner, i, Location.CENTER, true);
+                System.out.println("Adding reference to object at index " + i + ": " + owner);
+                container.add(createAggregateGraphicElementWithIndex(reference, i), Location.RIGHT);
+
+                Object targetObject = Array.get(owner, i);
+                RepresentationWithInConnectors<?> targetRepresentation = myCanvas.wrapObjectIfNeeded(targetObject);
+                if (targetRepresentation != null) {
+                    System.out.println("Wrapped target object: " + targetObject);
+                    myCanvas.add(targetObject, targetRepresentation);
+                    add(reference.getOutConnector(), targetRepresentation);
+                } else {
+                    System.err.println("Could not wrap target object: " + targetObject);
+                }
+            }
         }
+        System.out.println("Initialized ArrayRepresentation with " + container + " elements.");
+    }
+
+    private boolean isArrayOfPrimitivesOrEnums(Object array) {
+        Class<?> componentType = array.getClass().getComponentType();
+        return componentType.isPrimitive() || componentType.isEnum() || isWrapperType(componentType);
+    }
+
+    private boolean isWrapperType(Class<?> clazz) {
+        return clazz == Boolean.class || clazz == Character.class || clazz == Byte.class ||
+                clazz == Short.class || clazz == Integer.class || clazz == Long.class ||
+                clazz == Float.class || clazz == Double.class || clazz == Void.class || clazz == String.class;
     }
 
     public void update() {
         container.removeAllGraphicElements();
         init();
+        myCanvas.repaint();
     }
 
     public String getComponentTypeName() {
-        return componentTypeName;
+        return componentTypeName + "[]";
     }
 
     @Override
@@ -72,7 +98,7 @@ public class ArrayRepresentation extends GeneralRepresentation<Object> {
         position.translate(0, -3);
         Color oldColor = g.getColor();
         g.setColor(Color.BLACK);
-        g.drawString(Utils.getClassSimpleName(getCompleteTypeName()), position.x, position.y);
+        g.drawString(Utils.getClassSimpleName(getComponentTypeName()), position.x, position.y);
         g.setColor(oldColor);
     }
 
@@ -90,78 +116,24 @@ public class ArrayRepresentation extends GeneralRepresentation<Object> {
         return containerWithoutInConnectors;
     }
 
-    public String getCompleteTypeName() {
-        return componentTypeName + "[]";
+    public void add(OutConnector outConnector, RepresentationWithInConnectors<?> targetRepresentation) {
+        System.out.println("Entering add method");
+
+        System.out.println("OutConnector: " + outConnector);
+
+        // Use the first InConnector for this example
+        InConnector inConnector = targetRepresentation.getFirstInConnector();
+        if (inConnector != null) {
+            System.out.println("InConnector found: " + inConnector);
+
+            // Add the connection using the correct target type
+            myCanvas.add(new StraightConnection<>(outConnector, targetRepresentation));
+            outConnector.getReference().setFieldValue(targetRepresentation.getOwner());
+            System.out.println("Added connection from " + outConnector + " to " + targetRepresentation);
+        } else {
+            System.err.println("No InConnector found for targetRepresentation.");
+        }
+
+        System.out.println("Exiting add method");
     }
-
-// @Override
-// public ButtonBar getButtonBar(Point position) {
-//     final PositionalGraphicElement positionalGraphicElement = container.getPositionalGraphicElement(position);
-//     return positionalGraphicElement instanceof ArrayReference && ((ArrayReference) positionalGraphicElement).getFieldValue() != null ?
-//             ((ArrayReference) positionalGraphicElement).getButtonBar() :
-//             positionalGraphicElement instanceof OutConnector && ((OutConnector) positionalGraphicElement).getReference().getFieldValue() != null ?
-//                     ((ArrayReference) ((OutConnector) positionalGraphicElement).getReference()).getButtonBar() :
-//                     IDSToolWindow.getButtonBar(IDSToolWindow.COLLECTION_BUTTON_BAR);
-// }
-
- // public String getCreationCode() {
- //     StringBuilder sb = new StringBuilder("new ");
- //     final String type = this.componentTypeName;
- //     final String[] parts = type.split("\\[", 2);
-
- //     Class<?> clazz = Utils.getClassForName(type);
- //     String classSimpleName = Utils.getClassSimpleName(type);
- //     boolean withInitialization = parts.length == 1 && clazz != null &&
- //             (clazz.isEnum() || Utils.isPrimitiveOrPrimitiveWrapperType(classSimpleName) || Utils.isACompactReferenceableType(classSimpleName));
-
- //     sb.append(Utils.getClassSimpleName(parts[0]).split("<")[0]).append("[");
- //     WrapperWithValue[] ownerValue = owner.getValue();
- //     if (!withInitialization) {
- //         sb.append(ownerValue.length);
- //     }
- //     sb.append("]");
- //     if (parts.length > 1) {
- //         sb.append("[").append(parts[1]);
- //     } else if (withInitialization) {
- //         sb.append("{");
- //         for (int i = 0; i < ownerValue.length - 1; i++) {
- //             sb.append(Utils.getCode(ownerValue[i].getValue(), canvas.getIDSToolWindow())).append(", ");
- //         }
- //         if (ownerValue.length > 0) {
- //             sb.append(Utils.getCode(ownerValue[ownerValue.length - 1].getValue(), canvas.getIDSToolWindow()));
- //         }
- //         sb.append("}");
- //     }
-
- //     return sb.toString();
- // }
-
-    public void add(Representation sourceRepresentation, PositionalGraphicElement positionalGraphicElement) {
-        final OutConnector outConnector = positionalGraphicElement instanceof ArrayReference ?
-                ((ArrayReference) positionalGraphicElement).getOutConnector() :
-                ((OutConnector) positionalGraphicElement);
-
-       myCanvas.add(new StraightConnection<>(outConnector, ((RepresentationWithInConnectors) sourceRepresentation)));
-        outConnector.getReference().setFieldValue(sourceRepresentation.getOwner());
-    }
-
-//    private class AggregateGraphicElementContainer {
-//        Container container;
-//        AggregateRectangularGraphicElement aggregateGraphicElement;
-//
-//        public AggregateGraphicElementContainer(Container container, AggregateRectangularGraphicElement aggregateGraphicElement) {
-//            this.container = container;
-//            this.aggregateGraphicElement = aggregateGraphicElement;
-//        }
-//
-//        void remove() {
-//            container.remove(aggregateGraphicElement);
-//            container.setTopCellSpacing(4);
-//            container.repositionAggregateGraphicElement();
-//        }
-//    }
-
-
-
-
 }
