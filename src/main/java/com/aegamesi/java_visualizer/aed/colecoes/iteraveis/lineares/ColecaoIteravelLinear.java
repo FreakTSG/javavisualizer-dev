@@ -1,5 +1,6 @@
 package com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares;
 
+import com.aegamesi.java_visualizer.aed.Comparacao;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.ColecaoIteravel;
 
 /**
@@ -24,4 +25,5 @@ public interface ColecaoIteravelLinear<T> extends ColecaoIteravel<T> {
     boolean contem(T elem);
 
     boolean contemReferencia(T elem);
+    Comparacao<T> getComparador();
 }

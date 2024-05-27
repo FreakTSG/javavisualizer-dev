@@ -1,5 +1,6 @@
 package com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.naoordenadas.estruturas;
 
+import com.aegamesi.java_visualizer.aed.Comparacao;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.ColecaoIteravel;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.IteradorIteravel;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.naoordenadas.ColecaoIteravelLinearNaoOrdenada;
@@ -217,6 +218,11 @@ public class ListaSimplesNaoOrdenada<T> implements ColecaoIteravelLinearNaoOrden
     }
 
     @Override
+    public Comparacao<T> getComparador() {
+        return null;
+    }
+
+    @Override
     public int getNumeroElementos() {
         return numeroElementos;
     }
@@ -286,9 +292,6 @@ public class ListaSimplesNaoOrdenada<T> implements ColecaoIteravelLinearNaoOrden
             return corrente.seguinte != base;
         }
 
-        public int getCurrentIndex() {
-            return currentIndex; // Getter for the current index.
-        }
 
         @Override
         public T avancar() {

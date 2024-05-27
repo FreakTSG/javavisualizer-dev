@@ -1,5 +1,6 @@
 package com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.naoordenadas.estruturas;
 
+import com.aegamesi.java_visualizer.aed.Comparacao;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.ColecaoIteravel;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.IteradorIteravelDuplo;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.naoordenadas.ColecaoIteravelLinearNaoOrdenada;
@@ -180,6 +181,11 @@ public class ListaDuplaNaoOrdenada<T> implements ColecaoIteravelLinearNaoOrdenad
     @Override
     public boolean contemReferencia(T elem) {
         return getNoPorReferencia(elem) != base;
+    }
+
+    @Override
+    public Comparacao<T> getComparador() {
+        return null;
     }
 
     @Override
