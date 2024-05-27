@@ -3,8 +3,13 @@ package com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.ColecaoIteravelLinear;
 import com.aegamesi.java_visualizer.ui.ConstantsIDS;
 import com.aegamesi.java_visualizer.ui.MyCanvas;
+import com.aegamesi.java_visualizer.ui.graphics.Connection;
+import com.aegamesi.java_visualizer.ui.graphics.InConnector;
+import com.aegamesi.java_visualizer.ui.graphics.OutConnector;
+import com.aegamesi.java_visualizer.ui.graphics.StraightConnection;
 import com.aegamesi.java_visualizer.ui.graphics.aggregations.FieldReference;
 import com.aegamesi.java_visualizer.ui.graphics.localizations.Location;
+import com.aegamesi.java_visualizer.ui.graphics.representations.RepresentationWithInConnectors;
 import com.aegamesi.java_visualizer.utils.Utils;
 
 import javax.swing.*;
@@ -27,13 +32,40 @@ public abstract class SortedCircularSimpleLinkedListAlsoWithBaseRepresentation<T
         leftContainer.add(comparatorFieldReference, Location.RIGHT);
     }
 
-    /*@Override
+    @Override
     public void update() {
         super.update();
-        StraightConnection comparatorConnection = new StraightConnection(comparatorFieldReference.getOutConnector(), myCanvas.getRepresentationWithInConnectors( owner.getValue().getComparador()), Color.RED);
-        connections.add(comparatorConnection);
-        myCanvas.add(comparatorConnection);
-    }*/
+
+        // Ensure that the target representation exists
+        RepresentationWithInConnectors<?> targetRepresentation = myCanvas.getRepresentationWithInConnectors(owner.getComparador());
+        if (targetRepresentation == null) {
+            System.err.println("Target representation for comparator is null.");
+            return;
+        }
+
+        // Create and add the connection
+        try {
+            OutConnector outConnector = comparatorFieldReference.getOutConnector();
+            if (outConnector == null) {
+                System.err.println("OutConnector for comparatorFieldReference is null.");
+                return;
+            }
+
+            // We will connect to the first InConnector of the target representation
+            InConnector inConnector = targetRepresentation.getFirstInConnector();
+            if (inConnector == null) {
+                System.err.println("No InConnector found for target representation.");
+                return;
+            }
+
+            // Create a StraightConnection using OutConnector and InConnector
+            Connection comparatorConnection = new StraightConnection(outConnector, targetRepresentation, Color.RED);
+            connections.add(comparatorConnection);
+            myCanvas.add(comparatorConnection);
+        } catch (Exception e) {
+            System.err.println("Error creating connection: " + e.getMessage());
+        }
+    }
 
 
 

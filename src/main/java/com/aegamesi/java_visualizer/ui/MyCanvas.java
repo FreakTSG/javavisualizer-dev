@@ -165,6 +165,13 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                 System.out.println("Heao Onbject data:"+ HeapObject.label );
                 System.out.println("O que esta aqui: " + (!HeapObject.label.contains("anonymous")&&!HeapObject.label.contains("No")&&!HeapObject.label.contains("NoComElemento")&&!HeapObject.label.contains("Base")));
 
+                System.out.println("HeapList fields: " + ((HeapObject) entity).fields);
+                System.out.println("HeapList label: " + entity.label);
+                System.out.println("HeapList id: " + entity.id);
+                System.out.println("HeapList type: " + entity.type);
+                System.out.println("HeapList Class: " + entity.getClass());
+
+
                 Comparacao<Object> comparator = (o1, o2) -> {
                     if (o1.getClass() == o2.getClass() && o1 instanceof Comparable) {
                         return ((Comparable) o1).compareTo(o2);
@@ -204,6 +211,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                    ListaSimplesOrdenada<Object> simpleSortedList = convertHeapObjectToSortedSimpleList(HeapObject, heapMap, comparator);
                    System.out.println("Sorted SImple list converted "+simpleSortedList);
                    addSortedSimpleListRepresentation(simpleSortedList, canvas);
+
                }else if (isSortedDoubleList(HeapObject, heapMap)){
                    System.out.println("Entrei na lista Dupla ordenada");
                    ListaDuplaOrdenada<Object> doubleSortedList = convertHeapObjectToSortedDoubleList(HeapObject, heapMap, comparator);
@@ -650,6 +658,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         int offset = 54;
         for (i = 0; i <= doubleList.getNumeroElementos(); i++) {
             Point position = new Point(var.x + i * offset + 55, var.y + 28);
+            System.out.println("Position: " + position);
             nodePositions.put((long) i, position);
         }
     }
@@ -720,10 +729,27 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
             index++;
 
         }
+
+        Comparacao<Object> comparador = (Comparacao<Object>) simpleList.getComparador();
+        System.out.println("Comparador: " + comparador);
+
+        ComparatorRepresentation<Comparacao<Object>> comparatorRepresentation =
+                new ComparatorRepresentation<>(new Point(START_X, START_Y - 50), comparador, canvas);
+        canvas.add(comparador, comparatorRepresentation);
+
         SortedCircularSimpleLinkedListWithBaseMaxOrderRepresentation sortedSingleList =
-                new SortedCircularSimpleLinkedListWithBaseMaxOrderRepresentation(new Point(0, 0), simpleList, canvas); // Adjust the position as needed
+                new SortedCircularSimpleLinkedListWithBaseMaxOrderRepresentation(new Point(START_X, START_Y), simpleList, canvas); // Adjust the position as needed
         canvas.add(simpleList, sortedSingleList);
+
+
+
+
         calculateNodePositions(simpleList);
+
+
+
+
+
         System.out.println("Lista valores:" + simpleList);
         existingRepresentations.put(simpleList, sortedSingleList);
         canvas.representationWithInConnectorsByOwner.put(simpleList, sortedSingleList);
@@ -743,8 +769,11 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
             index++;
         }
         SortedCircularDoubleLinkedListWithBaseMaxOrderRepresentation sortedDoubleList =
-                new SortedCircularDoubleLinkedListWithBaseMaxOrderRepresentation(new Point(0, 0), doubleList, canvas); // Adjust the position as needed
+                new SortedCircularDoubleLinkedListWithBaseMaxOrderRepresentation(new Point(START_X, START_Y), doubleList, canvas); // Adjust the position as needed
         canvas.add(doubleList, sortedDoubleList);
+
+
+
         sortedDoubleList.update();
         calculateNodePositions(doubleList);
         System.out.println("Lista valores:" + doubleList);
@@ -760,6 +789,8 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
             throw new IllegalArgumentException("Comparator must not be null.");
         }
         ListaSimplesOrdenada<Object> sortedSingleList = new ListaSimplesOrdenada<>(comparator);
+        comparator= sortedSingleList.getComparador();
+        System.out.println(comparator.getClass());
         Long baseRef = heapObject.fields.get("base").reference;
         HeapObject currentNode = (HeapObject) heapMap.get(baseRef);
 
