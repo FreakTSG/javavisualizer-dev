@@ -30,6 +30,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.AffineTransform;
 import java.lang.reflect.Array;
+import java.lang.reflect.Field;
 import java.util.*;
 
 
@@ -213,9 +214,6 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
                    addProjectEntityRepresentation(HeapObject, canvas);
                }
-
-
-                //determineAndRepresentHeapObject(heapObject, canvas,heapMap);
             }
         }
 
@@ -517,8 +515,13 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                     refreshCanvas(canvas);
                 }
             }else if(!(item instanceof ColecaoIteravel<?>)){
-           PrimitiveOrEnumRepresentation itemRepresentation = new PrimitiveOrEnumRepresentation(position, item, canvas);
-           canvas.add(item, itemRepresentation);
+                if(item instanceof HeapObject){
+                    addProjectEntityRepresentation(item, canvas);
+                }else {
+                    PrimitiveOrEnumRepresentation itemRepresentation = new PrimitiveOrEnumRepresentation(position, item, canvas);
+                    canvas.add(item, itemRepresentation);
+                }
+
            refreshCanvas(canvas);
 //
            }
@@ -671,41 +674,6 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         return new Point(100, 100); // Exemplo de posição fixa
     }
 
-    public Object convertHeapObjectToObject(HeapObject heapObject, Map<Long, HeapEntity> heapMap) {
-        if (heapObject == null) {
-            return null;
-        }
-
-        System.out.println("Bora ver dentro do Heap: " + heapObject);
-        System.out.println("Bora ver dentro do Heap: " + heapObject.label);
-
-        try {
-            // Obter o mapa de campos do objeto HeapObject
-            Map<String, Value> campos = heapObject.fields;
-
-            // Criar uma nova instância de objeto para armazenar os valores extraídos
-            Object instance = new Object();
-
-
-            // Iterar sobre os campos e definir seus valores na nova instância
-            for (Map.Entry<String, Value> entry : campos.entrySet()) {
-                String nomeCampo = entry.getKey();
-                Object valorCampo = entry.getValue();
-                // Definir o valor do campo na nova instância
-
-                // (Aqui você pode realizar ações específicas com os valores, como armazená-los em algum lugar)
-                System.out.println("Campo: " + nomeCampo + ", Valor: " + valorCampo);
-            }
-
-            instance = heapObject.fields;
-            System.out.println("Campo: " + instance);
-            return instance;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
 
     private void addProjectEntityRepresentation(Object entity, MyCanvas canvas) {
         // Determine a posição inicial para a representação do objeto
@@ -713,21 +681,13 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
         Point position = calculatePositionForEntity(entity);
 
-
         // Crie a representação do objeto
         ProjectEntityRepresentation<Object> entityRepresentation = new ProjectEntityRepresentation<>(position, entity, canvas);
 
         // Adicione a representação ao canvas
         canvas.add(entity, entityRepresentation);
-        representationWithInConnectorsByOwner.put(entity, entityRepresentation);
         // Atualize a representação (caso necessário)
         entityRepresentation.update();
-
-        // Armazene a representação no mapa de representações existentes
-        //existingRepresentations.put(entity, entityRepresentation);
-
-        // Adicione a representação aos conectores do canvas
-        //canvas.representationWithInConnectorsByOwner.put(entity, entityRepresentation);
 
         // Atualize o canvas para refletir as mudanças
         refreshCanvas(canvas);
@@ -972,6 +932,14 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                 }else if (innerListObject.label.contains("ListaDuplaOrdenada")) {
                     ListaDuplaOrdenada<?> innerList = convertHeapObjectToSortedDoubleList(innerListObject, heapMap,comparator);
                     list.inserir(innerList);
+                }else {
+                    // Attempt to retrieve the actual data for custom objects
+                    HeapObject customObject = (HeapObject) heapMap.get(dataValue.reference);
+                    System.out.println("O que esta a passar dentro do custom Object: " + customObject);
+                    //Object actualData = extractActualData(customObject);
+                    if (customObject != null) {
+                        list.inserir(customObject);
+                    }
                 }
             } else if (dataValue != null) {
                 // It's a direct value, add it to the current list
@@ -994,6 +962,27 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         positionalGraphicElements.clear();
     }
 
+    private Object extractActualData(HeapObject customObject) {
+        if (customObject == null) {
+            return null;
+        }
+
+        // Assuming customObject has a field that holds the actual data
+        // Modify this according to your actual object structure
+        Field[] fields = customObject.getClass().getDeclaredFields();
+        for (Field field : fields) {
+            field.setAccessible(true);
+            try {
+                Object value = field.get(customObject);
+                if (value != null) {
+                    return value;
+                }
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
 
     @Override
     protected void paintComponent(Graphics g) {

@@ -52,11 +52,9 @@ abstract public class GeneralGenericRepresentation<T extends Object> extends Gen
                 labelField.setAccessible(true);
                 return (String) labelField.get(owner);
             } catch (NoSuchFieldException | IllegalAccessException ex) {
-                ex.printStackTrace();
                 return "Unknown";
             }
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
             return "Unknown";
         }
     }
