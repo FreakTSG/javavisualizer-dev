@@ -183,17 +183,22 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                     System.out.println("Comparator found: " + comparator);
                 }
 
+                HeapObjectConversionManager conversionManager = new HeapObjectConversionManager(heapMap, canvas, comparator);
+
+
+
+
 
                 if(isSimpleList(HeapObject)){
                     System.out.println("Entrei na lista simples nao ordenada");
-                    ListaSimplesNaoOrdenada<?> simpleList=convertHeapObjectToListofLists(HeapObject, heapMap,canvas,comparator);
-                    System.out.println("Simple list converted "+simpleList);
-                    addSimpleListRepresentation(simpleList, canvas);
+                    ListaSimplesNaoOrdenada<Object> listOfLists = conversionManager.convertHeapObjectToListOfLists(HeapObject);
+                    System.out.println("Simple list converted "+listOfLists);
+                    addSimpleListRepresentation(listOfLists, canvas);
 
                 } else if(HeapObject.label.contains("ListaDuplaNaoOrdenada")){
 
                    System.out.println("Entrei na lista dupla nao ordenada");
-                   ListaDuplaNaoOrdenada<?> doubleList=convertHeapObjectToDoubleList(HeapObject, heapMap);
+                    ListaDuplaNaoOrdenada<Object> doubleList = conversionManager.convertHeapObjectToDoubleList(HeapObject);
                    System.out.println("Double list converted "+doubleList);
                    addDoubleListRepresentation(doubleList, canvas);
 
@@ -208,15 +213,15 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                 }else if(isSortedSimpleList(HeapObject, heapMap)){
 
                    System.out.println("Entrei na lista Simples ordenada");
-                   ListaSimplesOrdenada<Object> simpleSortedList = convertHeapObjectToSortedSimpleList(HeapObject, heapMap, comparator);
-                   System.out.println("Sorted SImple list converted "+simpleSortedList);
-                   addSortedSimpleListRepresentation(simpleSortedList, canvas);
+                    ListaSimplesOrdenada<Object> sortedSimpleList = conversionManager.convertHeapObjectToSortedSimpleList(HeapObject);
+                   System.out.println("Sorted SImple list converted "+sortedSimpleList);
+                   addSortedSimpleListRepresentation(sortedSimpleList, canvas);
 
                }else if (isSortedDoubleList(HeapObject, heapMap)){
                    System.out.println("Entrei na lista Dupla ordenada");
-                   ListaDuplaOrdenada<Object> doubleSortedList = convertHeapObjectToSortedDoubleList(HeapObject, heapMap, comparator);
-                   System.out.println("Sorted Double list converted "+doubleSortedList);
-                   addSortedDoubleListRepresentation(doubleSortedList, canvas);
+                    ListaDuplaOrdenada<Object> sortedDoubleList = conversionManager.convertHeapObjectToSortedDoubleList(HeapObject);
+                   System.out.println("Sorted Double list converted "+sortedDoubleList);
+                   addSortedDoubleListRepresentation(sortedDoubleList, canvas);
 
                }else if (!HeapObject.label.contains("anonymous")&&!HeapObject.label.contains("No")&&!HeapObject.label.contains("NoComElemento")&&!HeapObject.label.contains("Base")){
 
@@ -782,237 +787,10 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         refreshCanvas(canvas);
     }
 
-
-
-    private ListaSimplesOrdenada<Object> convertHeapObjectToSortedSimpleList(HeapObject heapObject, Map<Long, HeapEntity> heapMap, Comparacao<Object> comparator) {
-        if (comparator == null) {
-            throw new IllegalArgumentException("Comparator must not be null.");
-        }
-        ListaSimplesOrdenada<Object> sortedSingleList = new ListaSimplesOrdenada<>(comparator);
-        comparator= sortedSingleList.getComparador();
-        System.out.println(comparator.getClass());
-        Long baseRef = heapObject.fields.get("base").reference;
-        HeapObject currentNode = (HeapObject) heapMap.get(baseRef);
-
-        if (currentNode == null) {
-            System.out.println("Sentinel node is null.");
-            return sortedSingleList;
-        }
-
-        Long currentNodeRef = currentNode.fields.get("seguinte").reference;
-
-        while (currentNodeRef != null && !currentNodeRef.equals(baseRef)) {
-            currentNode = (HeapObject) heapMap.get(currentNodeRef);
-            if (currentNode == null) {
-                break;
-            }
-            Object element = currentNode.fields.get("elemento").getActualValue();
-            sortedSingleList.inserir(element);
-            currentNodeRef = currentNode.fields.get("seguinte").reference;
-        }
-        System.out.println("ISTO ESTA A DAR O QUE?::: " + sortedSingleList);
-        return sortedSingleList;
-    }
-
-    private ListaDuplaOrdenada<Object> convertHeapObjectToSortedDoubleList(HeapObject heapObject, Map<Long, HeapEntity> heapMap, Comparacao<Object> comparator) {
-        if (comparator == null) {
-            throw new IllegalArgumentException("Comparator must not be null.");
-        }
-        ListaDuplaOrdenada<Object> sortedDoubleList = new ListaDuplaOrdenada<>(comparator);
-        Long baseRef = heapObject.fields.get("base").reference;
-        HeapObject currentNode = (HeapObject) heapMap.get(baseRef);
-
-        if (currentNode == null) {
-            System.out.println("Sentinel node is null.");
-            return sortedDoubleList;
-        }
-
-        Long currentNodeRef = currentNode.fields.get("seguinte").reference;
-
-
-        while (currentNodeRef != null && !currentNodeRef.equals(baseRef)) {
-            currentNode = (HeapObject) heapMap.get(currentNodeRef);
-            if (currentNode == null) {
-                break;
-            }
-            Object element = currentNode.fields.get("elemento").getActualValue();
-            sortedDoubleList.inserir(element);
-            currentNodeRef = currentNode.fields.get("seguinte").reference;
-        }
-
-        return sortedDoubleList;
-    }
-
-
-
-    private ListaDuplaNaoOrdenada<?> convertHeapObjectToDoubleList(HeapObject heapObject, Map<Long, HeapEntity> heapMap) {
-        ListaDuplaNaoOrdenada<Object> doubleList = new ListaDuplaNaoOrdenada<>();
-        Value headValue = heapObject.fields.get("base"); // Start from the 'base', not 'noFinal'
-        Set<Long> visitedNodeIds = new HashSet<>(); // To detect cycles
-
-        // The base node itself should not be added, so move to the first actual element
-        headValue = ((HeapObject)heapMap.get(headValue.reference)).fields.get("seguinte");
-
-        while (headValue != null && headValue.type == Value.Type.REFERENCE && headValue.reference != 0) {
-            if (visitedNodeIds.contains(headValue.reference)) {
-                System.out.println("Cycle detected or reached base node again. Terminating.");
-                break; // Detect a cycle or the traversal has reached the base node again
-            }
-            visitedNodeIds.add(headValue.reference); // Track the visited nodes
-
-            HeapEntity entity = heapMap.get(headValue.reference);
-            if (!(entity instanceof HeapObject)) {
-                break;
-            }
-            HeapObject currentNode = (HeapObject) entity;
-
-            if (currentNode.fields.get("elemento")!=null) { // Make sure it's not the base sentinel node
-                Value dataValue = currentNode.fields.get("elemento");
-                if (dataValue != null) {
-                    Object actualData = dataValue.getActualValue();
-                    if (actualData != null) {
-                        doubleList.inserir(actualData);
-                        System.out.println("Inserted: " + actualData);
-                    } else {
-                        System.out.println("Actual Data is null for node with ID: " + currentNode.id);
-                    }
-                } else {
-                    System.out.println("Data Value is null for node with ID: " + currentNode.id);
-                }
-            }
-
-            headValue = currentNode.fields.get("seguinte"); // Move to the next node
-        }
-        return doubleList;
-    }
-
-
-
-    private ListaSimplesNaoOrdenada<Object> convertHeapObjectToSimpleList(HeapObject heapObject, Map<Long, HeapEntity> heapMap) {
-        ListaSimplesNaoOrdenada<Object> simpleList = new ListaSimplesNaoOrdenada<>();
-        Value headValue = heapObject.fields.get("base"); // Start from the 'base', not 'noFinal'
-        Set<Long> visitedNodeIds = new HashSet<>(); // To detect cycles
-
-        // The base node itself should not be added, so move to the first actual element
-        headValue = ((HeapObject)heapMap.get(headValue.reference)).fields.get("seguinte");
-
-        while (headValue != null && headValue.type == Value.Type.REFERENCE && headValue.reference != 0) {
-            if (visitedNodeIds.contains(headValue.reference)) {
-                System.out.println("Cycle detected or reached base node again. Terminating.");
-                break; // Detect a cycle or the traversal has reached the base node again
-            }
-            visitedNodeIds.add(headValue.reference); // Track the visited nodes
-
-            HeapEntity entity = heapMap.get(headValue.reference);
-            if (!(entity instanceof HeapObject)) {
-                break;
-            }
-            HeapObject currentNode = (HeapObject) entity;
-
-            if (currentNode.fields.get("elemento")!=null) { // Make sure it's not the base sentinel node
-                Value dataValue = currentNode.fields.get("elemento");
-                if (dataValue != null) {
-                    Object actualData = dataValue.getActualValue();
-                    if (actualData != null) {
-                        simpleList.inserir(actualData);
-                        System.out.println("Inserted: " + actualData);
-                    } else {
-                        System.out.println("Actual Data is null for node with ID: " + currentNode.id);
-                    }
-                } else {
-                    System.out.println("Data Value is null for node with ID: " + currentNode.id);
-                }
-            }
-
-            headValue = currentNode.fields.get("seguinte"); // Move to the next node
-        }
-        return simpleList;
-    }
-    private ListaSimplesNaoOrdenada<Object> convertHeapObjectToListofLists(HeapObject heapObject, Map<Long, HeapEntity> heapMap, MyCanvas canvas,Comparacao<Object> comparator) {
-        ListaSimplesNaoOrdenada<Object> list = new ListaSimplesNaoOrdenada<>();
-        Value headValue = heapObject.fields.get("base"); // Start from the 'base'
-        headValue = ((HeapObject)heapMap.get(headValue.reference)).fields.get("seguinte"); // Skip the sentinel node
-
-        Set<Long> visitedNodeIds = new HashSet<>(); // To detect cycles
-
-        while (headValue != null && headValue.type == Value.Type.REFERENCE && headValue.reference != 0) {
-            if (visitedNodeIds.contains(headValue.reference)) {
-                break; // Detect a cycle or the traversal has reached the base node again
-            }
-            visitedNodeIds.add(headValue.reference); // Track the visited nodes
-
-            HeapObject currentNode = (HeapObject) heapMap.get(headValue.reference);
-            Value dataValue = currentNode.fields.get("elemento");
-            // Check if the dataValue is a reference to another list ( another HeapObject)
-            if (dataValue != null && dataValue.type == Value.Type.REFERENCE) {
-                HeapObject innerListObject = (HeapObject) heapMap.get(dataValue.reference);
-                System.out.println("Esta a entrar no primeiro if: " + isSimpleList(innerListObject));
-                System.out.println("Esta a entrar no segundo if: "+ innerListObject.label + "||||||||" + innerListObject.label.contains("ListaDuplaNaoOrdenada"));
-                if (isSimpleList(innerListObject)) {
-                    // It's a simple list, convert it to a simple list and add it to the current list
-                    ListaSimplesNaoOrdenada<?> innerList = convertHeapObjectToSimpleList(innerListObject, heapMap);
-                    list.inserir(innerList);
-                } else if (innerListObject.label.contains("ListaDuplaNaoOrdenada")) {
-
-                    ListaDuplaNaoOrdenada<?> innerList = convertHeapObjectToDoubleList(innerListObject, heapMap);
-                    list.inserir(innerList);
-                    //addDoubleListRepresentation(innerList, canvas);
-                } else if (innerListObject.label.contains("ListaSimplesOrdenada")) {
-                    ListaSimplesOrdenada<?> innerList = convertHeapObjectToSortedSimpleList(innerListObject, heapMap,comparator);
-                    list.inserir(innerList);
-                }else if (innerListObject.label.contains("ListaDuplaOrdenada")) {
-                    ListaDuplaOrdenada<?> innerList = convertHeapObjectToSortedDoubleList(innerListObject, heapMap,comparator);
-                    list.inserir(innerList);
-                }else {
-                    // Attempt to retrieve the actual data for custom objects
-                    HeapObject customObject = (HeapObject) heapMap.get(dataValue.reference);
-                    System.out.println("O que esta a passar dentro do custom Object: " + customObject);
-                    //Object actualData = extractActualData(customObject);
-                    if (customObject != null) {
-                        list.inserir(customObject);
-                    }
-                }
-            } else if (dataValue != null) {
-                // It's a direct value, add it to the current list
-                Object actualData = dataValue.getActualValue();
-                if (actualData != null) {
-                    list.inserir(actualData);
-                }
-            }
-
-            headValue = currentNode.fields.get("seguinte"); // Move to the next node
-        }
-        return list;
-    }
-
-
-
     private void removeAllRepresentations() {
         representationWithInConnectorsByOwner.clear();
         connectionByOutConnector.clear();
         positionalGraphicElements.clear();
-    }
-
-    private Object extractActualData(HeapObject customObject) {
-        if (customObject == null) {
-            return null;
-        }
-
-        // Assuming customObject has a field that holds the actual data
-        // Modify this according to your actual object structure
-        Field[] fields = customObject.getClass().getDeclaredFields();
-        for (Field field : fields) {
-            field.setAccessible(true);
-            try {
-                Object value = field.get(customObject);
-                if (value != null) {
-                    return value;
-                }
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-        }
-        return null;
     }
 
     @Override
@@ -1049,100 +827,6 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         representationWithInConnectors.decrementReferenceCount();
     }
 
-//    public WrapperWithValue getWrapperWithValue(Object value) {
-////        for (Wrapper wrapper : representationWithInConnectorsByOwner.keySet()) {
-//        for (Wrapper wrapper : wrapperById.values()) {
-//            if (wrapper instanceof WrapperWithValue && ((WrapperWithValue<?>) wrapper).getValue() == value) {
-//                return ((WrapperWithValue<?>) wrapper);
-//            }
-//        }
-//        return null; //nunca deve acontecer
-//    }
-
-
-    public Object getIDSToolWindow() {
-        return IDSToolWindow;
-    }
-
-    /*public String getFirstReferenceTo(Representation representation) {
-       String firstVariableReference = getFirstVariableReferenceTo(representation);
-       if (firstVariableReference != null) {
-           return firstVariableReference;
-       }
-       //identificar todas as conexões cujo destino seja esta representação
-       for (Connection connection : connectionByOutConnector.values()) {
-           if (connection.getTarget() == representation) {
-               //se o ponto de partida for um outConnector de uma ArrayReference
-               Reference reference = connection.getSource().getReference();
-               if (reference instanceof ArrayReference arrayReference) {
-                   //guardar o index
-                   int index = arrayReference.getIndex();
-                   //chamar este método para a representação do array + [index]
-                   return getFirstReferenceTo(getRepresentationWithInConnectors(
-                           arrayReference.getArray())) + "[" + index + "]";
-               } else {
-                   //se o ponto de partida for um outConnector de uma FieldReference
-                   FieldReference fieldReference = (FieldReference) reference;
-                   //se for um nó de uma lista
-                   WrapperWithValue<?> fieldOwnerObjectOfWrapper = fieldReference.getFieldOwnerObjectOfWrapper();
-                   if (fieldOwnerObjectOfWrapper instanceof LinkedListNodeWrapper) {
-                       LinkedListRepresentation linkedListRepresentation = (LinkedListRepresentation) getRepresentationWithInConnectors(((LinkedListNodeWrapper<?>) fieldOwnerObjectOfWrapper).getLinkedListOrSortedHashTableWrapper());
-                       //chamar este método para a representação da lista + .get(i)
-                       return getFirstReferenceTo(linkedListRepresentation)
-                               + ".consultarPorIndice(" + (fieldOwnerObjectOfWrapper).getIndex() + ")";
-                   }
-
-                   Point sourceRepresentationPosition = getRepresentationWithInConnectors(fieldOwnerObjectOfWrapper).getPosition();
-                   Representation movableRepresentation = getMovableRepresentation(sourceRepresentationPosition.x, sourceRepresentationPosition.y);
-
-                   if (fieldOwnerObjectOfWrapper instanceof AssociationWrapper) {
-                       //se for uma association de uma hashtable
-                       //chamar este método para a representação da hashtable + .get(chave)
-                       RepresentationWithInConnectors representationWithInConnectors = getRepresentationWithInConnectors(((AssociationWrapper) fieldOwnerObjectOfWrapper).getGeneralHashTableWrapper());
-                       if (representationWithInConnectors instanceof HashTableRepresentation hashTableRepresentation) {
-
-                           WrapperWithValue keyWrapper = (WrapperWithValue) ((Associacao) ((AssociationWrapper) fieldOwnerObjectOfWrapper).getValue()).getChave();
-                           String firstReferenceToKeyWrapper = getFirstReferenceTo(keyWrapper);
-                           String keyCode = firstReferenceToKeyWrapper.equals(Constants.UNKOWN_REF) ?
-                                   Utils.getCode(keyWrapper.getValue()) :
-                                   firstReferenceToKeyWrapper;
-
-                           return getFirstReferenceTo(hashTableRepresentation)
-                                   + ".consultar(" + keyCode + ")";
-                       } else {
-                           SortedHashTableRepresentation sortedHashTableRepresentation = (SortedHashTableRepresentation) representationWithInConnectors;
-                           WrapperWithValue keyWrapper = (WrapperWithValue) ((Associacao) ((AssociationWrapper) fieldOwnerObjectOfWrapper).getValue()).getChave();
-                           String firstReferenceToKeyWrapper = getFirstReferenceTo(keyWrapper);
-                           String keyCode = firstReferenceToKeyWrapper.equals(Constants.UNKOWN_REF) ?
-                                   Utils.getCode(keyWrapper.getValue()) :
-                                   firstReferenceToKeyWrapper;
-
-                           return getFirstReferenceTo(sortedHashTableRepresentation)
-                                   + ".consultar(" + keyCode + ")";
-                       }
-                   }
-                   //se for de uma ProjectEntity
-                  //chamar este método para a representação da projectentity + .getXXXXX()
-                        Point sourceRepresentationPosition = getRepresentationWithInConnectors(fieldOwnerObjectOfWrapper).getPosition();
-                  Representation movableRepresentation = getRepresentationWithInConnectors(fieldOwnerObjectOfWrapper);
-                    Field field = fieldReference.getField();
-                    StringBuilder methodName = new StringBuilder(field.getName());
-                    String initialCharUpperCase = String.valueOf(methodName.charAt(0)).toUpperCase();
-                    methodName.setCharAt(0, initialCharUpperCase.charAt(0));
-                   return getFirstReferenceTo(movableRepresentation)
-                           + Utils.getGetterCall(fieldReference.getField());
-
-               }
-           }
-       }
-       return "[unkown_ref]";
-   }*/
-
-   /*public String getFirstReferenceTo(Wrapper wrapper) {
-        return getFirstReferenceTo(representationWithInConnectorsByOwner.get(wrapper));
-       RepresentationWithInConnectors representation = representationWithInConnectorsByOwner.get(wrapper.getId());
-       return representation == null ? Constants.UNKOWN_REF : getFirstReferenceTo(representation);
-   }*/
 
     public RepresentationWithInConnectors getRepresentationWithInConnectors(Object owner) {
         return representationWithInConnectorsByOwner.get(owner);
