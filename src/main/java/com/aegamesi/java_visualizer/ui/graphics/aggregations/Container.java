@@ -4,6 +4,7 @@ import com.aegamesi.java_visualizer.ui.graphics.PositionalGraphicElement;
 import com.aegamesi.java_visualizer.ui.graphics.localizations.Location;
 
 import java.awt.*;
+import java.util.List;
 import java.io.Serializable;
 import java.util.ArrayList;
 
@@ -133,7 +134,6 @@ public class Container extends AggregateRectangularGraphicElement {
         }
         return maxHeight;
     }
-
 
     public void add(AggregateRectangularGraphicElement aggregateGraphicElement) {
         add(aggregateGraphicElement, Location.CENTER);
@@ -299,6 +299,10 @@ public class Container extends AggregateRectangularGraphicElement {
         return rectangle.intersects(containerRectangle);
     }
 
+    public List<LocalizableAggregateGraphicElement> getGraphicElements() {
+        return localizableAggregateGraphicElements;
+    }
+
     public ArrayList<NormalTextElement> getTextElements() {
         final ArrayList<NormalTextElement> normalTextElements = new ArrayList<>();
         for (LocalizableAggregateGraphicElement localizableAggregateGraphicElement : localizableAggregateGraphicElements) {
@@ -319,8 +323,8 @@ public class Container extends AggregateRectangularGraphicElement {
         repositionAggregateGraphicElement();
     }
 
-    class LocalizableAggregateGraphicElement implements Serializable {
-        protected AggregateRectangularGraphicElement aggregateGraphicElement;
+    public class LocalizableAggregateGraphicElement implements Serializable {
+        public AggregateRectangularGraphicElement aggregateGraphicElement;
         protected Location location;
 
         public LocalizableAggregateGraphicElement(AggregateRectangularGraphicElement aggregateGraphicElement, Location location) {
@@ -328,5 +332,4 @@ public class Container extends AggregateRectangularGraphicElement {
             this.location = location;
         }
     }
-
 }

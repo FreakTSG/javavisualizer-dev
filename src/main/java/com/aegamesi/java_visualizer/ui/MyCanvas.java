@@ -56,6 +56,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
     private static final int HORIZONTAL_SPACING = 50;
     private static final int VERTICAL_SPACING = 50;
     private Map<Object, RepresentationWithInConnectors> existingRepresentations = new HashMap<>();
+    private final Map<HeapObjectKey, RepresentationWithInConnectors> contentRepresentationMap = new HashMap<>();
     private Map<Long, Point> nodePositions = new HashMap<>();
     private String IteratorLabel ;
     private boolean showIterator = false;
@@ -112,6 +113,18 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         System.out.println("Creating visual representations for the trace");
         Map<Long, HeapEntity> heapMap = buildHeapMap(trace);
         canvas.removeAllRepresentations();
+
+        for (HeapEntity entity : trace.heap.values()) {
+            if(entity instanceof HeapObject HeapObject){
+                if(!HeapObject.label.contains("anonymous")&&!HeapObject.label.contains("No")&&!HeapObject.label.contains("NoComElemento")&&!HeapObject.label.contains("Base")&&!HeapObject.label.contains("Lista")){
+                    addProjectEntityRepresentation(HeapObject, canvas);
+                    refreshCanvas(canvas);
+                }
+            }
+
+        }
+        System.out.println("MAPA ENTIDADES"+contentRepresentationMap);
+
         for (HeapEntity entity : trace.heap.values()) {
             System.out.println("Creating visual representation for entity: " + entity);
 
@@ -218,9 +231,6 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                    System.out.println("Sorted Double list converted "+doubleSortedList);
                    addSortedDoubleListRepresentation(doubleSortedList, canvas);
 
-               }else if (!HeapObject.label.contains("anonymous")&&!HeapObject.label.contains("No")&&!HeapObject.label.contains("NoComElemento")&&!HeapObject.label.contains("Base")){
-
-                   addProjectEntityRepresentation(HeapObject, canvas);
                }
             }
         }
@@ -447,8 +457,8 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         int index = 0;
         for (Object item : simpleList) {
             Point position = calculatePositionForListItem(index);
-            System.out.println("O que esta a passar"+item);
-            System.out.println("O que esta a passar"+(item instanceof ColecaoIteravel<?>));
+           System.out.println("O que esta a passar item"+item);
+           //System.out.println("O que esta a passar"+(item instanceof ColecaoIteravel<?>));
             if (item instanceof ListaSimplesNaoOrdenada<?>) {
                 System.out.println("Estou aqui dentro 1\n\n");
 
@@ -522,17 +532,11 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                     existingRepresentations.put(item, nestedListRepresentation);
                     refreshCanvas(canvas);
                 }
-            }else if(!(item instanceof ColecaoIteravel<?>)){
-                if(item instanceof HeapObject){
-                    addProjectEntityRepresentation(item, canvas);
-                }else {
-                    PrimitiveOrEnumRepresentation itemRepresentation = new PrimitiveOrEnumRepresentation(position, item, canvas);
-                    canvas.add(item, itemRepresentation);
-                }
-
-           refreshCanvas(canvas);
-//
-           }
+            }else{
+               //PrimitiveOrEnumRepresentation itemRepresentation = new PrimitiveOrEnumRepresentation(position, item, canvas);
+               //canvas.add(item, itemRepresentation);
+               //refreshCanvas(canvas);
+            }
             index++;
         }
 
@@ -540,12 +544,30 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         UnsortedCircularSimpleLinkedListWithBaseRepresentation representation =
                 new UnsortedCircularSimpleLinkedListWithBaseRepresentation(new Point(START_X, START_Y), simpleList, canvas);
         canvas.add(simpleList, representation);
+       
         calculateNodePositions(simpleList);
         System.out.println("Lista valores:" + simpleList);
         existingRepresentations.put(simpleList, representation);
         canvas.representationWithInConnectorsByOwner.put(simpleList, representation);
         refreshCanvas(canvas);
 
+    }
+
+    public RepresentationWithInConnectors getRepresentationByContent(HeapObject obj) {
+        HeapObjectKey key = new HeapObjectKey(obj);
+        System.out.println("Retrieving representation for key: " + key);
+        return contentRepresentationMap.get(key);
+    }
+
+    public void addRepresentationByContent(HeapObject obj, RepresentationWithInConnectors representation) {
+        HeapObjectKey key = new HeapObjectKey(obj);
+        System.out.println("Adding representation for key: " + key + " Value: " + representation);
+        contentRepresentationMap.put(key, representation);
+    }
+    public void debugContentRepresentationMap() {
+        for (Map.Entry<HeapObjectKey, RepresentationWithInConnectors> entry : contentRepresentationMap.entrySet()) {
+            System.out.println("Key: " + entry.getKey() + " Value: " + entry.getValue());
+        }
     }
 
     private RepresentationWithInConnectors findRepresentationForList(ListaSimplesNaoOrdenada<?> list) {
@@ -675,28 +697,28 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         System.out.println("nodePositions: " + nodePositions);
     }
 
-    // Método auxiliar para calcular a posição inicial de um objeto no canvas
-    private Point calculatePositionForEntity(Object entity) {
-        // Lógica para calcular a posição do objeto no canvas
-        // Aqui você pode usar uma lógica simples ou mais complexa, dependendo das necessidades do seu layout
-        // Para simplicidade, vamos usar uma posição fixa ou baseada em uma lógica personalizada
-        return new Point(100, 100); // Exemplo de posição fixa
-    }
+
 
 
     private void addProjectEntityRepresentation(Object entity, MyCanvas canvas) {
         // Determine a posição inicial para a representação do objeto
         System.out.println("Dentro da funcao addProjectEntity o objeto: " + entity);
 
-        Point position = calculatePositionForEntity(entity);
 
-        // Crie a representação do objeto
-        ProjectEntityRepresentation<Object> entityRepresentation = new ProjectEntityRepresentation<>(position, entity, canvas);
+System.out.println("entity: " + entity);
+        System.out.println("entity getClass: " + entity.getClass());
+
+        ProjectEntityRepresentation<Object> entityRepresentation = new ProjectEntityRepresentation<>(new Point(0,0), entity, canvas);
 
         // Adicione a representação ao canvas
         canvas.add(entity, entityRepresentation);
         // Atualize a representação (caso necessário)
+
         entityRepresentation.update();
+        canvas.addRepresentationByContent((HeapObject) entity, entityRepresentation);
+        System.out.println("entityRepresentation: " + entity+"added to" + entityRepresentation);
+        existingRepresentations.put(entity, entityRepresentation);
+        representationWithInConnectorsByOwner.put(entity, entityRepresentation);
 
         // Atualize o canvas para refletir as mudanças
         refreshCanvas(canvas);
@@ -1024,6 +1046,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         g2.setTransform(transform);
 
         for (RepresentationWithInConnectors representationWithInConnectors : representationWithInConnectorsByOwner.values()) {
+            System.out.println("Representation: " + representationWithInConnectors + " Position: " + representationWithInConnectors.getPosition());
             representationWithInConnectors.paint(g);
         }
         for (Connection connection : connectionByOutConnector.values()) {
@@ -1033,13 +1056,13 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
             positionalGraphicElement.paint(g);
         }
 
-
         if (showIterator && iteratorSquarePosition != null && iteratorTargetPosition != null) {
             drawIteratorWithLabel(g2,iteratorSquarePosition,iteratorTargetPosition,IteratorLabel);
         }
 //        g.drawString( mousePosition.x + "," + mousePosition.y + "   ZOOM=" + zoom + "   SIZE=" + getSize().width + "x" + getSize().height, 10, 10);
 //        g.drawString("ActualFilename=->" + actualFilename + "<-" + mousePosition.x + "," + mousePosition.y + "   ZOOM=" + zoom + "   SIZE=" + getSize().width + "x" + getSize().height, 10, 10);
 //        g.drawString("showVar=" + showVar, 10, 10);
+        System.out.println("Finished paintComponent");
 
     }
 

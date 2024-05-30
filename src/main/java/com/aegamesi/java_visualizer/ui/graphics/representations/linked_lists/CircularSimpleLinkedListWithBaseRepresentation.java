@@ -1,6 +1,7 @@
 package com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists;
 
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.ColecaoIteravelLinear;
+import com.aegamesi.java_visualizer.model.HeapObject;
 import com.aegamesi.java_visualizer.ui.ConstantsIDS;
 import com.aegamesi.java_visualizer.ui.MyCanvas;
 import com.aegamesi.java_visualizer.ui.graphics.CConnection;
@@ -10,8 +11,10 @@ import com.aegamesi.java_visualizer.ui.graphics.aggregations.ContainerWithoutInC
 import com.aegamesi.java_visualizer.ui.graphics.aggregations.FieldReference;
 import com.aegamesi.java_visualizer.ui.graphics.aggregations.NormalTextElement;
 import com.aegamesi.java_visualizer.ui.graphics.localizations.Location;
+import com.aegamesi.java_visualizer.ui.graphics.representations.RepresentationWithInConnectors;
 import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.nodes.SimpleNodeRepresentation;
 import com.aegamesi.java_visualizer.utils.Utils;
+import com.github.weisj.jsvg.S;
 
 import javax.swing.*;
 import java.awt.*;
@@ -61,8 +64,6 @@ public abstract class CircularSimpleLinkedListWithBaseRepresentation<TLinkedList
 
     private void createNode(FieldReference nodeFieldReference) {
         TNode node = (TNode) nodeFieldReference.getFieldValue();
-
-//        final LinkedListNodeWrapper nodeWrapper = new LinkedListNodeWrapper(node.getClass(), node.getClass().getName(), node, owner, actualIndex);
         SimpleNodeRepresentation<TNode> simpleNodeRepresentation = new SimpleNodeRepresentation<>(new Point(), node, myCanvas);
         ContainerWithoutInConnectors nodeAndIndexContainer = new ContainerWithoutInConnectors(new Point(), new Dimension(), false);
         nodeAndIndexContainer.add(simpleNodeRepresentation.getContainer());
@@ -79,24 +80,33 @@ public abstract class CircularSimpleLinkedListWithBaseRepresentation<TLinkedList
         nodeRepresentationByOwner.put(node, simpleNodeRepresentation);
         addNewConnection(new StraightConnection(nodeFieldReference.getOutConnector(), simpleNodeRepresentation, Color.RED));
 
-        //connect de node to its element
+        // Connect the node to its element
         FieldReference elementFieldReference = simpleNodeRepresentation.getElementFieldReference();
+        System.out.println("Element field reference: " + elementFieldReference.getPosition());
         Object fieldObject = elementFieldReference.getFieldValue();
+        System.out.println("Field object: " + fieldObject);
         if (fieldObject != null) {
-            addNewConnection(new StraightConnection(elementFieldReference.getOutConnector(), myCanvas.getRepresentationWithInConnectors(fieldObject), ConstantsIDS.LINKED_LIST_ELEMENTS_CONNECTIONS_COLOR));
+            RepresentationWithInConnectors var = myCanvas.getRepresentationByContent((HeapObject) fieldObject);
+            System.out.println("Var: " + var);
+
+            if (var != null) {
+                addNewConnection(new StraightConnection(elementFieldReference.getOutConnector(), var, ConstantsIDS.LINKED_LIST_ELEMENTS_CONNECTIONS_COLOR));
+            } else {
+                System.out.println("Target representation is null for field object: " + fieldObject);
+            }
+        } else {
+            System.out.println("Field object is null for element field reference.");
         }
 
-        //then deal the next node
+        // Then deal with the next node
         FieldReference nextFieldReference = simpleNodeRepresentation.getNextFieldReference();
-
         TNode nextNode = (TNode) nextFieldReference.getFieldValue();
 
-        //create connection from last to first(base)
+        // Create connection from last to first (base)
         if (baseFieldReference.getFieldValue() == nextNode) {
             addNewConnection(new CConnection(nextFieldReference.getOutConnector(), nodeRepresentationByOwner.get(nextNode), Color.RED, 14, 21, nextNode == node));
         } else {
             createNode(nextFieldReference);
         }
     }
-
 }

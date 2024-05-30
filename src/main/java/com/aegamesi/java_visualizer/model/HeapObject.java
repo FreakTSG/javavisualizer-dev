@@ -59,4 +59,5 @@ public class HeapObject extends HeapEntity {
 			return null;
 		}
     }
+
 }
