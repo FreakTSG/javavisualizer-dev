@@ -114,7 +114,16 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         Map<Long, HeapEntity> heapMap = buildHeapMap(trace);
         canvas.removeAllRepresentations();
 
+        for (HeapEntity entity : trace.heap.values()) {
+            if(entity instanceof HeapObject HeapObject){
+                if(!HeapObject.label.contains("anonymous")&&!HeapObject.label.contains("No")&&!HeapObject.label.contains("NoComElemento")&&!HeapObject.label.contains("Base")&&!HeapObject.label.contains("Lista")){
+                    addProjectEntityRepresentation(HeapObject, canvas);
+                    refreshCanvas(canvas);
+                }
+            }
 
+        }
+        System.out.println("MAPA ENTIDADES"+contentRepresentationMap);
 
 
         for (HeapEntity entity : trace.heap.values()) {
@@ -225,10 +234,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                    addSortedDoubleListRepresentation(doubleSortedList, canvas);
 
                }
-                else if(!HeapObject.label.contains("anonymous")&&!HeapObject.label.contains("No")&&!HeapObject.label.contains("NoComElemento")&&!HeapObject.label.contains("Base")&&!HeapObject.label.contains("Lista")){
-                    addProjectEntityRepresentation(HeapObject, canvas);
-                    refreshCanvas(canvas);
-                }
+                
             }
         }
 
