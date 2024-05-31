@@ -9,6 +9,7 @@ import com.aegamesi.java_visualizer.ui.graphics.aggregations.ContainerWithoutInC
 import com.aegamesi.java_visualizer.ui.graphics.aggregations.FieldReference;
 import com.aegamesi.java_visualizer.ui.graphics.aggregations.NormalTextElement;
 import com.aegamesi.java_visualizer.ui.graphics.localizations.Location;
+import com.aegamesi.java_visualizer.ui.graphics.representations.RepresentationWithInConnectors;
 import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.nodes.DoubleNodeRepresentation;
 import com.aegamesi.java_visualizer.utils.Utils;
 
@@ -93,7 +94,16 @@ public abstract class CircularDoubleLinkedListWithBaseRepresentation<TLinkedList
         FieldReference elementFieldReference = doubleNodeRepresentation.getElementFieldReference();
         Object fieldObject = elementFieldReference.getFieldValue();
         if (fieldObject != null) {
-            addNewConnection(new StraightConnection(elementFieldReference.getOutConnector(), myCanvas.getRepresentationWithInConnectors(fieldObject), ConstantsIDS.LINKED_LIST_ELEMENTS_CONNECTIONS_COLOR));
+            RepresentationWithInConnectors var = myCanvas.getRepresentationWithInConnectors( fieldObject);
+            System.out.println("Var: " + var);
+
+            if (var != null) {
+                addNewConnection(new StraightConnection(elementFieldReference.getOutConnector(), var, ConstantsIDS.LINKED_LIST_ELEMENTS_CONNECTIONS_COLOR));
+            } else {
+                System.out.println("Target representation is null for field object: " + fieldObject);
+            }
+        } else {
+            System.out.println("Field object is null for element field reference.");
         }
 
         // Then deal with the next node
