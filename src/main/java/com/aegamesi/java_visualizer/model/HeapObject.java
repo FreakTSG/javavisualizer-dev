@@ -1,5 +1,6 @@
 package com.aegamesi.java_visualizer.model;
 
+import com.aegamesi.java_visualizer.aed.Comparacao;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -8,6 +9,44 @@ import java.util.TreeMap;
 
 public class HeapObject extends HeapEntity {
 	public Map<String, Value> fields = new TreeMap<>();
+
+	public Comparacao<?> getComparadorInstance(Map<Long, HeapEntity> heapMap) {
+		try {
+			Value criterioValue = fields.get("criterio");
+			if (criterioValue == null) {
+				System.err.println("Comparator value is null.");
+				return null;
+			}
+
+			if (criterioValue.type != Value.Type.REFERENCE) {
+				System.err.println("Comparator value is not a reference.");
+				return null;
+			}
+
+			// Get the comparator object from the heap
+			HeapObject comparatorObject = (HeapObject) heapMap.get(criterioValue.reference);
+			if (comparatorObject == null) {
+				System.err.println("Comparator object is null.");
+				return null;
+			}
+
+			// Ensure that the comparator object has the class name set
+			String className = comparatorObject.getClassName();
+			if (className == null) {
+				System.err.println("Comparator class name is null.");
+				return null;
+			}
+
+			System.out.println("Comparator class name: " + className);
+
+			Class<?> comparatorClass = Class.forName(className);
+			System.out.println("Loaded comparator class: " + comparatorClass.getName());
+			return (Comparacao<?>) comparatorClass.getDeclaredConstructor().newInstance();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 
 	@Override
 	public boolean hasSameStructure(HeapEntity other) {

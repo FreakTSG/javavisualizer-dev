@@ -7,10 +7,7 @@ import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.ordenadas.es
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.ordenadas.estruturas.ListaSimplesOrdenada;
 import com.aegamesi.java_visualizer.model.*;
 import com.aegamesi.java_visualizer.model.Frame;
-import com.aegamesi.java_visualizer.ui.graphics.Connection;
-import com.aegamesi.java_visualizer.ui.graphics.OutConnector;
-import com.aegamesi.java_visualizer.ui.graphics.PositionalGraphicElement;
-import com.aegamesi.java_visualizer.ui.graphics.StraightConnection;
+import com.aegamesi.java_visualizer.ui.graphics.*;
 import com.aegamesi.java_visualizer.ui.graphics.aggregations.ArrayReference;
 import com.aegamesi.java_visualizer.ui.graphics.aggregations.Reference;
 import com.aegamesi.java_visualizer.ui.graphics.localizations.Location;
@@ -116,15 +113,42 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
         for (HeapEntity entity : trace.heap.values()) {
             if(entity instanceof HeapObject HeapObject){
+
+
+
+                System.out.println("HeapObject fields fields: " + HeapObject.fields);
+                System.out.println("HeapObject fields getClass: " + HeapObject.getClass());
+                System.out.println("HeapObject fields getClass Name: " + HeapObject.getClass().getName());
+                System.out.println("HeapObject fields getActualClass: " + HeapObject.getActualClass());
                 if(!HeapObject.label.contains("anonymous")&&!HeapObject.label.contains("No")&&!HeapObject.label.contains("NoComElemento")&&!HeapObject.label.contains("Base")&&!HeapObject.label.contains("Lista")){
                     addProjectEntityRepresentation(HeapObject, canvas);
                     refreshCanvas(canvas);
                 }
+                if(HeapObject.fields.containsKey("name")){
+                    System.out.println("Comparator found: " );
+                    Value criterioValue = HeapObject.fields.get("name");
+                    System.out.println("HeapObject fields criterioValue: " + criterioValue);
+                    System.out.println("HeapObject fields criterioValue type: " + criterioValue.type);
+
+                    if (criterioValue.type == Value.Type.STRING) {
+                        String criterioName = criterioValue.stringValue;
+
+                        Comparacao<?> comparacao = getComparatorFromString(criterioName);
+                        if (comparacao != null) {
+                            System.out.println("Comparator: " + comparacao);
+                        } else {
+                            System.out.println("Failed to get comparator from string.");
+                        }
+                    } else {
+                        System.out.println("CRITERIO field is not a STRING.");
+                    }
+                } else {
+                    System.out.println("HeapObject does not contain the field CRITERIO.");
+                }
             }
-
         }
-        System.out.println("MAPA ENTIDADES"+contentRepresentationMap);
 
+        System.out.println("MAPA ENTIDADES" + contentRepresentationMap);
 
         for (HeapEntity entity : trace.heap.values()) {
             System.out.println("Creating visual representation for entity: " + entity);
@@ -201,22 +225,27 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
                 if (HeapObject.label.contains("org.example.aed.Comparacao")) {
                     System.out.println("Comparator found: " );
+
+                    Comparacao<?> comparacao = (Comparacao<?>) HeapObject.fields.get("name");
+                    System.out.println("Comparator: " + comparacao);
+
+
                 }
 
 
                 if(isSimpleList(HeapObject)){
                     System.out.println("Entrei na lista simples nao ordenada");
-                    //ListaSimplesNaoOrdenada<?> simpleList=convertHeapObjectToListofLists(HeapObject, heapMap,canvas);
-                    //System.out.println("Simple list converted "+simpleList);
-                    //addSimpleListRepresentation(simpleList, canvas);
+                    ListaSimplesNaoOrdenada<?> simpleList=convertHeapObjectToListofLists(HeapObject, heapMap,canvas,comparator);
+                    System.out.println("Simple list converted "+simpleList);
+                    addSimpleListRepresentation(simpleList, canvas);
 
                 } else if(HeapObject.label.contains("ListaDuplaNaoOrdenada")){
 
                    System.out.println("Entrei na lista dupla nao ordenada");
                    System.out.println("HeapObject fields: " + HeapObject.fields);
-                  // ListaDuplaNaoOrdenada<?> doubleList=convertHeapObjectToDoubleList(HeapObject, heapMap,canvas);
-                   //System.out.println("Double list converted "+doubleList);
-                   //addDoubleListRepresentation(doubleList, canvas);
+                  ListaDuplaNaoOrdenada<?> doubleList=convertHeapObjectToDoubleList(HeapObject, heapMap,canvas,comparator);
+                  System.out.println("Double list converted "+doubleList);
+                  addDoubleListRepresentation(doubleList, canvas);
 
                }else if(HeapObject.label.contains("Iterador")){
 
@@ -235,9 +264,9 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
                }else if (isSortedDoubleList(HeapObject, heapMap)){
                    System.out.println("Entrei na lista Dupla ordenada");
-                  // ListaDuplaOrdenada<Object> doubleSortedList = convertHeapObjectToSortedDoubleList(HeapObject, heapMap);
-                   //System.out.println("Sorted Double list converted "+doubleSortedList);
-                   //addSortedDoubleListRepresentation(doubleSortedList, canvas);
+                  ListaDuplaOrdenada<Object> doubleSortedList = convertHeapObjectToSortedDoubleList(HeapObject, heapMap,comparator);
+                  System.out.println("Sorted Double list converted "+doubleSortedList);
+                  addSortedDoubleListRepresentation(doubleSortedList, canvas);
 
                }
                 
@@ -251,6 +280,22 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         }
         refreshCanvas(canvas);
         canvas.repaint();
+    }
+    private Comparacao<?> getComparatorFromString(String criterioName) {
+        Class<? extends Comparacao<?>> comparatorClass = ComparatorRegistry.getComparatorClass(criterioName);
+
+        if (comparatorClass != null) {
+            try {
+                return comparatorClass.getEnumConstants()[0]; // Assuming the comparator is an enum with a single instance
+            } catch (Exception e) {
+                System.out.println("Error occurred while instantiating comparator: " + e.getMessage());
+                e.printStackTrace();
+                return null;
+            }
+        } else {
+            System.out.println("Class not found for criterioName: " + criterioName);
+            return null;
+        }
     }
 
     private void createListRepresentation(HeapList heapList, Map<Long, HeapEntity> heapMap, MyCanvas canvas) {
@@ -817,15 +862,12 @@ System.out.println("entity: " + entity);
 
         int index = 0;
         for (Object item : simpleList) {
-            if(isPrimitiveOrEnum(item)){
-                Point position = calculatePositionForListItem(index);
+            Point position = calculatePositionForListItem(index);
+            if (isPrimitiveOrEnum(item)) {
                 PrimitiveOrEnumRepresentation itemRepresentation = new PrimitiveOrEnumRepresentation(position, item, canvas);
                 canvas.add(item, itemRepresentation);
-
             }
             index++;
-
-
         }
 
         Comparacao<Object> comparador = (Comparacao<Object>) simpleList.getComparador();
@@ -858,15 +900,23 @@ System.out.println("entity: " + entity);
 
 
     private void addSortedDoubleListRepresentation(ListaDuplaOrdenada<?> doubleList, MyCanvas canvas) {
-        // Logic to create a visual representation for the double list and add it to the canvas
-        // Traverse the doubleList and create representations for each element
-        int index = 1;
+        int index = 0;
         for (Object item : doubleList) {
             Point position = calculatePositionForListItem(index);
-            PrimitiveOrEnumRepresentation itemRepresentation = new PrimitiveOrEnumRepresentation(position, item, canvas);
-            canvas.add(item, itemRepresentation);
+            if (isPrimitiveOrEnum(item)){
+                PrimitiveOrEnumRepresentation itemRepresentation = new PrimitiveOrEnumRepresentation(position, item, canvas);
+                canvas.add(item, itemRepresentation);
+            }
             index++;
         }
+        Comparacao<Object> comparador = (Comparacao<Object>) doubleList.getComparador();
+        System.out.println("Comparador: " + comparador);
+
+        ComparatorRepresentation<Comparacao<Object>> comparatorRepresentation =
+                new ComparatorRepresentation<>(new Point(START_X, START_Y - 50), comparador, canvas);
+        canvas.add(comparador, comparatorRepresentation);
+
+
         SortedCircularDoubleLinkedListWithBaseMaxOrderRepresentation sortedDoubleList =
                 new SortedCircularDoubleLinkedListWithBaseMaxOrderRepresentation(new Point(START_X, START_Y), doubleList, canvas); // Adjust the position as needed
         canvas.add(doubleList, sortedDoubleList);
@@ -884,7 +934,6 @@ System.out.println("entity: " + entity);
 
 
     private ListaSimplesOrdenada<Object> convertHeapObjectToSortedSimpleList(HeapObject heapObject, Map<Long, HeapEntity> heapMap, Comparacao<Object> comparator) {
-        // Extract the comparator value from the 'criterio' field
         Value comparatorValue = heapObject.fields.get("criterio");
 
         if (comparatorValue == null) {
@@ -901,8 +950,7 @@ System.out.println("entity: " + entity);
             throw new IllegalArgumentException("Comparator object is null.");
         }
 
-        System.out.println("Comparator object fields: " + comparatorObject.fields);
-        System.out.println("Comparator found: " + comparator);
+
 
         // Create the sorted list with the comparator
         ListaSimplesOrdenada<Object> sortedSingleList = new ListaSimplesOrdenada<>(comparator);
@@ -962,32 +1010,77 @@ System.out.println("entity: " + entity);
     }
 
 
-  //private ListaDuplaOrdenada<Object> convertHeapObjectToSortedDoubleList(HeapObject heapObject, Map<Long, HeapEntity> heapMap) {
-  //
-  //    //ListaDuplaOrdenada<Object> sortedDoubleList = new ListaDuplaOrdenada<>();
-  //    Long baseRef = heapObject.fields.get("base").reference;
-  //    HeapObject currentNode = (HeapObject) heapMap.get(baseRef);
+  private ListaDuplaOrdenada<Object> convertHeapObjectToSortedDoubleList(HeapObject heapObject, Map<Long, HeapEntity> heapMap, Comparacao<Object> comparator) {
+      Value comparatorValue = heapObject.fields.get("criterio");
 
-  //    if (currentNode == null) {
-  //        System.out.println("Sentinel node is null.");
-  //        return sortedDoubleList;
-  //    }
+      if (comparatorValue == null) {
+          throw new IllegalArgumentException("Comparator value is null.");
+      }
 
-  //    Long currentNodeRef = currentNode.fields.get("seguinte").reference;
+      if (comparatorValue.type != Value.Type.REFERENCE) {
+          throw new IllegalArgumentException("Comparator value is not a reference.");
+      }
+
+      // Get the comparator object from the heap
+      HeapObject comparatorObject = (HeapObject) heapMap.get(comparatorValue.reference);
+      if (comparatorObject == null) {
+          throw new IllegalArgumentException("Comparator object is null.");
+      }
+
+      ListaDuplaOrdenada<Object> sortedDoubleList = new ListaDuplaOrdenada<>(comparator);
+      Long baseRef = heapObject.fields.get("base").reference;
+      HeapObject baseNode = (HeapObject) heapMap.get(baseRef);
+
+      if (baseNode == null) {
+          System.out.println("Base node is null.");
+          return sortedDoubleList;
+      }
+
+      Long currentNodeRef = baseNode.fields.get("seguinte").reference;
+
+      Set<Long> visitedNodeIds = new HashSet<>(); // To detect cycles
+
+      while (currentNodeRef != null && !currentNodeRef.equals(baseRef)) {
+          if (visitedNodeIds.contains(currentNodeRef)) {
+              System.out.println("Cycle detected or reached base node again. Terminating.");
+              break;
+          }
+          visitedNodeIds.add(currentNodeRef);
+
+          HeapObject currentNode = (HeapObject) heapMap.get(currentNodeRef);
+          if (currentNode == null) {
+              System.out.println("Current node is null.");
+              break;
+          }
+
+          Value elementValue = currentNode.fields.get("elemento");
+          System.out.println("Element value: " + elementValue.type);
+          if (elementValue != null && elementValue.type == Value.Type.REFERENCE) {
+              HeapObject customObject = (HeapObject) heapMap.get(elementValue.reference);
+              System.out.println("O que esta a passar dentro do custom Object: " + customObject);
+              //Object actualData = extractActualData(customObject);
+              if (customObject != null) {
+                  sortedDoubleList.inserir(customObject);
+              }
+              else {
+                  System.out.println("Actual data is null for node with ID: " + currentNode.id);
+              }
+          }
+          else {
+              Object element = elementValue.getActualValue();
+              if (element != null) {
+                  sortedDoubleList.inserir(element);
+
+              }
+          }
 
 
-  //    while (currentNodeRef != null && !currentNodeRef.equals(baseRef)) {
-  //        currentNode = (HeapObject) heapMap.get(currentNodeRef);
-  //        if (currentNode == null) {
-  //            break;
-  //        }
-  //        Object element = currentNode.fields.get("elemento").getActualValue();
-  //        sortedDoubleList.inserir(element);
-  //        currentNodeRef = currentNode.fields.get("seguinte").reference;
-  //    }
+          currentNodeRef = currentNode.fields.get("seguinte").reference;
+      }
 
-  //    return sortedDoubleList;
-  //}
+      System.out.println("Final sorted list: " + sortedDoubleList);
+      return sortedDoubleList;
+  }
 
 
 
@@ -1025,8 +1118,8 @@ System.out.println("entity: " + entity);
                     ListaSimplesOrdenada<?> innerList = convertHeapObjectToSortedSimpleList(innerListObject, heapMap,comparator);
                     doubleList.inserir(innerList);
                 }else if (innerListObject.label.contains("ListaDuplaOrdenada")) {
-                   //ListaDuplaOrdenada<?> innerList = convertHeapObjectToSortedDoubleList(innerListObject, heapMap,comparator);
-                   //doubleList.inserir(innerList);
+                   ListaDuplaOrdenada<?> innerList = convertHeapObjectToSortedDoubleList(innerListObject, heapMap,comparator);
+                   doubleList.inserir(innerList);
                 }else {
                     // Attempt to retrieve the actual data for custom objects
                     HeapObject customObject = (HeapObject) heapMap.get(dataValue.reference);
@@ -1124,8 +1217,8 @@ System.out.println("entity: " + entity);
                     ListaSimplesOrdenada<?> innerList = convertHeapObjectToSortedSimpleList(innerListObject, heapMap,comparator);
                     list.inserir(innerList);
                 }else if (innerListObject.label.contains("ListaDuplaOrdenada")) {
-                    //ListaDuplaOrdenada<?> innerList = convertHeapObjectToSortedDoubleList(innerListObject, heapMap,comparator);
-                    //list.inserir(innerList);
+                    ListaDuplaOrdenada<?> innerList = convertHeapObjectToSortedDoubleList(innerListObject, heapMap,comparator);
+                    list.inserir(innerList);
                 }else {
                     // Attempt to retrieve the actual data for custom objects
                     HeapObject customObject = (HeapObject) heapMap.get(dataValue.reference);
