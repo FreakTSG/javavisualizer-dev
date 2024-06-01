@@ -117,8 +117,8 @@ public class ListaDuplaOrdenada<T> implements ColecaoIteravelLinearOrdenada<T> {
         ListaDuplaOrdenada<?> that = (ListaDuplaOrdenada<?>) o;
         if (this.numeroElementos != that.numeroElementos) return false;
 
-        ListaDuplaOrdenada.No thisCurrent = this.base.seguinte;
-        ListaDuplaOrdenada.No thatCurrent = (ListaDuplaOrdenada.No) that.base.seguinte;
+        No thisCurrent = this.base.seguinte;
+        No thatCurrent = (No) that.base.seguinte;
 
         while (thisCurrent != base && thatCurrent != that.base) {
             if (!Objects.equals(thisCurrent.elemento, thatCurrent.elemento)) {

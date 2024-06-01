@@ -47,8 +47,7 @@ public class Value {
 			case CHAR:
 				return charValue;
 			case REFERENCE:
-				// For REFERENCE, you would need additional logic to resolve what this reference points to
-				return null; // Or some representation of a reference
+				return reference;
 			default:
 				return null;
 		}

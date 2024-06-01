@@ -104,8 +104,8 @@ public class ListaSimplesOrdenada<T> implements ColecaoIteravelLinearOrdenada<T>
         ListaSimplesOrdenada<?> that = (ListaSimplesOrdenada<?>) o;
         if (this.numeroElementos != that.numeroElementos) return false;
 
-        ListaSimplesOrdenada.No thisCurrent = this.base.seguinte;
-        ListaSimplesOrdenada.No thatCurrent = (ListaSimplesOrdenada.No) that.base.seguinte;
+        No thisCurrent = this.base.seguinte;
+        No thatCurrent = (No) that.base.seguinte;
 
         while (thisCurrent != base && thatCurrent != that.base) {
             if (!Objects.equals(thisCurrent.elemento, thatCurrent.elemento)) {
