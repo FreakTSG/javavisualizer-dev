@@ -18,10 +18,10 @@ public abstract class TabelaHash<C, V> implements ColecaoIteravelAssociativa<C, 
 
     private static final long serialVersionUID = 1L;
 
-    protected Entrada<C, V>[] tabela;  // Parametrização devido a vetor desse tipo
+    public Entrada<C, V>[] tabela;  // Parametrização devido a vetor desse tipo
     protected int incremento;
     private int numeroElementos;
-    protected int numeroElementosInativos;
+    public int numeroElementosInativos;
 
     public TabelaHash(int tamanho) {
         tabela = new Entrada[proximoPrimo(tamanho)];
@@ -47,6 +47,8 @@ public abstract class TabelaHash<C, V> implements ColecaoIteravelAssociativa<C, 
             n += 2;
         } while (true);
     }
+
+
 
     protected abstract void iniciarIncremento(C chave);
 
@@ -163,6 +165,8 @@ public abstract class TabelaHash<C, V> implements ColecaoIteravelAssociativa<C, 
         return this.numeroElementos;
     }
 
+    public int getNumeroElementosInativos() {return this.numeroElementosInativos;}
+
     @Override
     public boolean contem(C chave) {
         return consultar(chave) != null;
@@ -199,6 +203,7 @@ public abstract class TabelaHash<C, V> implements ColecaoIteravelAssociativa<C, 
     public IteradorIteravel<V> iteradorValores() {
         return new IteradorValores();
     }
+
 
 
     public class Entrada<C, V> implements Serializable {

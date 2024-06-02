@@ -1,6 +1,9 @@
 package com.aegamesi.java_visualizer.ui;
 
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.ColecaoIteravel;
+import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.associativas.estruturas.Associacao;
+import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.associativas.estruturas.TabelaHash;
+import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.associativas.estruturas.TabelaHashComIncrementoPorHash;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.naoordenadas.estruturas.ListaDuplaNaoOrdenada;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.naoordenadas.estruturas.ListaSimplesNaoOrdenada;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.ordenadas.estruturas.ListaDuplaOrdenada;
@@ -12,6 +15,7 @@ import com.aegamesi.java_visualizer.ui.graphics.aggregations.ArrayReference;
 import com.aegamesi.java_visualizer.ui.graphics.aggregations.Reference;
 import com.aegamesi.java_visualizer.ui.graphics.localizations.Location;
 import com.aegamesi.java_visualizer.ui.graphics.representations.*;
+import com.aegamesi.java_visualizer.ui.graphics.representations.hashtables.HashTableRepresentation;
 import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.*;
 
 import com.aegamesi.java_visualizer.utils.Vetor2D;
@@ -165,49 +169,35 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                 System.out.println("HeapList Class: " + heapList.getClass());
 
 
-                    System.out.println("Entrei no Integer");
-                    createListRepresentation(heapList, heapMap, canvas);
-                    refreshCanvas(canvas);
 
+                if(heapList.label.contains("Entrada"))    {
+                    System.out.println("Entrei na tabela hash Entrada");
 
-                //print whats inside the heaplist
-                for (Value value : heapList.items) {
-                    System.out.println("Value Type: " + value.type);
-                    switch (value.type) {
-                        case LONG:
-                            System.out.println("Long value: " + value.longValue);
-                            break;
-                        case STRING:
-                            System.out.println("String value: " + value.stringValue);
-                            break;
-                        case REFERENCE:
-                            System.out.println("Reference to entity with ID: " + value.reference);
-                            if (heapMap.containsKey(value.reference)) {
-                                System.out.println("Referenced Entity: " + heapMap.get(value.reference).getClass().getSimpleName());
-                            } else {
-                                System.out.println("Reference not found in heapMap.");
-                            }
-                            break;
-                    }
-                  // Array items= (Array) heapMap.get(value.reference);
-                  // ArrayRepresentation arrayRepresentation = new ArrayRepresentation(new Point(0, 0), items, "int", canvas);
+                    System.out.println("HeapList items: " + heapList.items);
+                    System.out.println("HeapList label: " + heapList.label);
+
 
                 }
 
+                else {
+                    System.out.println("Entrei no Integer");
+                    createListRepresentation(heapList, heapMap, canvas);
+                    refreshCanvas(canvas);
+                }
 
 
             } else if (entity instanceof HeapObject ) {
 
                 HeapObject HeapObject = (HeapObject) entity;
 
-                System.out.println("Heao Onbject data:"+ HeapObject.label );
+                System.out.println("HeapObject data:"+ HeapObject.label );
                 System.out.println("O que esta aqui: " + (!HeapObject.label.contains("anonymous")&&!HeapObject.label.contains("No")&&!HeapObject.label.contains("NoComElemento")&&!HeapObject.label.contains("Base")));
 
-                System.out.println("HeapList fields: " + ((HeapObject) entity).fields);
-                System.out.println("HeapList label: " + entity.label);
-                System.out.println("HeapList id: " + entity.id);
-                System.out.println("HeapList type: " + entity.type);
-                System.out.println("HeapList Class: " + entity.getClass());
+                System.out.println("HeapObject fields: " + ((HeapObject) entity).fields);
+                System.out.println("HeapObject label: " + entity.label);
+                System.out.println("HeapObject id: " + entity.id);
+                System.out.println("HeapObject type: " + entity.type);
+                System.out.println("HeapObject Class: " + entity.getClass());
 
 
                 Comparacao<Object> comparator = (o1, o2) -> {
@@ -228,11 +218,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
                     Comparacao<?> comparacao = (Comparacao<?>) HeapObject.fields.get("name");
                     System.out.println("Comparator: " + comparacao);
-
-
                 }
-
-
                 if(isSimpleList(HeapObject)){
                     System.out.println("Entrei na lista simples nao ordenada");
                     ListaSimplesNaoOrdenada<?> simpleList=convertHeapObjectToListofLists(HeapObject, heapMap,canvas,comparator);
@@ -269,7 +255,24 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                   addSortedDoubleListRepresentation(doubleSortedList, canvas);
 
                }
-                
+                else if (HeapObject.label.contains("TabelaHashComIncrementoPorHash")) {
+                    System.out.println("TabelaHashComIncrementoPorHash found: " );
+                    long tamanho= HeapObject.fields.get("tamanhoTabelaAnterior").longValue;
+                    System.out.println("Tamanho da tabela: "+tamanho);
+                    TabelaHashComIncrementoPorHash<?,?> tabelaHashComIncrementoPorHash=convertHeapObjectToTabelaHash(HeapObject, heapMap,canvas);
+                    System.out.println("TabelaHashComIncrementoPorHash: " + tabelaHashComIncrementoPorHash);
+
+                    canvas.add(tabelaHashComIncrementoPorHash, new HashTableRepresentation(new Point(0, 0), tabelaHashComIncrementoPorHash, canvas));
+                    refreshCanvas(canvas);
+                }
+
+                else if (HeapObject.label.contains("Associacao")) {
+                    System.out.println("Associacao found: " );
+                    Associacao<?,?> associacao = new Associacao<>(HeapObject.fields.get("chave"), HeapObject.fields.get("valor"));
+                    System.out.println("Associacao: " + associacao);
+                }
+
+
             }
         }
 
@@ -281,6 +284,73 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         refreshCanvas(canvas);
         canvas.repaint();
     }
+
+    private TabelaHashComIncrementoPorHash<?, ?> convertHeapObjectToTabelaHash(HeapObject heapObject, Map<Long, HeapEntity> heapMap, MyCanvas canvas) {
+        long tamanho = heapObject.fields.get("tamanhoTabelaAnterior").longValue;
+        TabelaHashComIncrementoPorHash<Object, Object> tabelaHashComIncrementoPorHash = new TabelaHashComIncrementoPorHash<>((int) tamanho);
+
+        long numeroElementos = heapObject.fields.get("numeroElementos").longValue;
+        System.out.println("Numero de elementos: " + numeroElementos);
+        if (numeroElementos > 0) {
+            Value tabelaValue = heapObject.fields.get("tabela");
+            if (tabelaValue.type == Value.Type.REFERENCE) {
+                HeapList tabelaList = (HeapList) heapMap.get(tabelaValue.reference);
+
+                for (Value entryValue : tabelaList.items) {
+                    if (entryValue != null && entryValue.type == Value.Type.REFERENCE) {
+                        HeapObject entry = (HeapObject) heapMap.get(entryValue.reference);
+                        if (entry != null && entry.fields.get("ativo").booleanValue) {
+                            Value associacaoValue = entry.fields.get("associacao");
+                            if (associacaoValue != null && associacaoValue.type == Value.Type.REFERENCE) {
+                                HeapObject associacao = (HeapObject) heapMap.get(associacaoValue.reference);
+                                Value chaveValue = associacao.fields.get("chave");
+                                Value valorValue = associacao.fields.get("valor");
+
+                                Object chave = extractActualValue(chaveValue, heapMap);
+                                Object valor = extractActualValue(valorValue, heapMap);
+
+                                System.out.println("Chave: " + chave + " Valor: " + valor);
+
+                                tabelaHashComIncrementoPorHash.inserir(chave, valor);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return tabelaHashComIncrementoPorHash;
+    }
+
+    private Object extractActualValue(Value value, Map<Long, HeapEntity> heapMap) {
+        if (value == null) {
+            return null;
+        }
+
+        switch (value.type) {
+            case LONG:
+                return value.longValue;
+            case STRING:
+                return value.stringValue;
+            case REFERENCE:
+                HeapEntity entity = heapMap.get(value.reference);
+                if (entity instanceof HeapObject) {
+                    HeapObject heapObject = (HeapObject) entity;
+                    System.out.println("HeapObject fields: " + heapObject.fields);
+                    // Attempting to get an actual value field within the HeapObject
+                    Value actualValue = heapObject.fields.get("valor");
+                    if (actualValue != null) {
+                        System.out.println("Extracted nested actual value: " + actualValue);
+                        return extractActualValue(actualValue, heapMap);
+                    }
+                    return heapObject; // return the entire object if no specific value is found
+                }
+                return entity;
+            default:
+                return null;
+        }
+    }
+
+
     private Comparacao<?> getComparatorFromString(String criterioName) {
         Class<? extends Comparacao<?>> comparatorClass = ComparatorRegistry.getComparatorClass(criterioName);
 
@@ -863,7 +933,84 @@ System.out.println("entity: " + entity);
         int index = 0;
         for (Object item : simpleList) {
             Point position = calculatePositionForListItem(index);
-            if (isPrimitiveOrEnum(item)) {
+            System.out.println("Lista ordenada fora do if" + item);
+
+            if (item instanceof HeapObject) {
+                System.out.println("Estou aqui dentro 1\n\n");
+
+                RepresentationWithInConnectors existingRepresentation = findRepresentationForList((ListaSimplesNaoOrdenada<?>) item);
+                if (existingRepresentation != null) {
+                    // Connect to existing representation
+                    canvas.add(item, existingRepresentation);
+                    refreshCanvas(canvas);
+                } else {
+                    System.out.println("Existing Representation is null\n\n");
+                    // Create new representation
+                    UnsortedCircularSimpleLinkedListWithBaseRepresentation nestedListRepresentation =
+                            new UnsortedCircularSimpleLinkedListWithBaseRepresentation(position, (ListaSimplesNaoOrdenada<?>) item, canvas);
+                    //nestedListRepresentation.update();
+                    canvas.add(item, nestedListRepresentation);
+                    existingRepresentations.put(item, nestedListRepresentation);
+                    refreshCanvas(canvas);
+                }
+
+            }
+            if (item instanceof ListaDuplaNaoOrdenada<?>) {
+                System.out.println("Estou aqui dentro 1\n\n");
+
+                RepresentationWithInConnectors existingRepresentation = findRepresentationForDoubleList((ListaDuplaNaoOrdenada<?>) item);
+                if (existingRepresentation != null) {
+                    // Connect to existing representation
+                    canvas.add(item, existingRepresentation);
+                    refreshCanvas(canvas);
+                } else {
+                    System.out.println("Existing Representation is null\n\n");
+                    // Create new representation
+                    UnsortedCircularDoubleLinkedListWithBaseRepresentation nestedListRepresentation =
+                            new UnsortedCircularDoubleLinkedListWithBaseRepresentation(position, (ListaDuplaNaoOrdenada<?>) item, canvas);
+                    //nestedListRepresentation.update();
+                    canvas.add(item, nestedListRepresentation);
+                    existingRepresentations.put(item, nestedListRepresentation);
+                    refreshCanvas(canvas);
+                }
+
+            }
+            if(item instanceof ListaSimplesOrdenada<?>){
+                RepresentationWithInConnectors existingRepresentation = findRepresentationForSortedList((ListaSimplesOrdenada<?>) item);
+                if (existingRepresentation != null) {
+                    // Connect to existing representation
+                    canvas.add(item, existingRepresentation);
+                    refreshCanvas(canvas);
+                } else {
+                    System.out.println("Existing Representation is null\n\n");
+                    // Create new representation
+                    SortedCircularSimpleLinkedListWithBaseMaxOrderRepresentation nestedListRepresentation =
+                            new SortedCircularSimpleLinkedListWithBaseMaxOrderRepresentation(position, (ListaSimplesOrdenada<?>) item, canvas);
+                    //nestedListRepresentation.update();
+                    canvas.add(item, nestedListRepresentation);
+                    existingRepresentations.put(item, nestedListRepresentation);
+                    refreshCanvas(canvas);
+                }
+            }
+            if(item instanceof ListaDuplaOrdenada<?>){
+                RepresentationWithInConnectors existingRepresentation = findRepresentationForSortedDoubleList((ListaDuplaOrdenada<?>) item);
+                if (existingRepresentation != null) {
+                    // Connect to existing representation
+                    canvas.add(item, existingRepresentation);
+                    refreshCanvas(canvas);
+                } else {
+                    System.out.println("Existing Representation is null\n\n");
+                    // Create new representation
+                    SortedCircularDoubleLinkedListWithBaseMaxOrderRepresentation nestedListRepresentation =
+                            new SortedCircularDoubleLinkedListWithBaseMaxOrderRepresentation(position, (ListaDuplaOrdenada<?>) item, canvas);
+                    //nestedListRepresentation.update();
+                    canvas.add(item, nestedListRepresentation);
+                    representationWithInConnectorsByOwner.put(item, nestedListRepresentation);
+                    existingRepresentations.put(item, nestedListRepresentation);
+                    refreshCanvas(canvas);
+                }
+            }
+            else if (isPrimitiveOrEnum(item)) {
                 PrimitiveOrEnumRepresentation itemRepresentation = new PrimitiveOrEnumRepresentation(position, item, canvas);
                 canvas.add(item, itemRepresentation);
             }
@@ -882,7 +1029,7 @@ System.out.println("entity: " + entity);
         canvas.add(simpleList, sortedSingleList);
 
 
-
+System.out.println("representationwithinconnectors:" + representationWithInConnectorsByOwner);
 
         calculateNodePositions(simpleList);
 
@@ -1318,7 +1465,7 @@ System.out.println("entity: " + entity);
 //    }
 
 
-    public Object getIDSToolWindow() {
+    public static Object getIDSToolWindow() {
         return IDSToolWindow;
     }
 
@@ -1394,7 +1541,7 @@ System.out.println("entity: " + entity);
            }
        }
        return "[unkown_ref]";
-   }*/
+   }
 
    /*public String getFirstReferenceTo(Wrapper wrapper) {
         return getFirstReferenceTo(representationWithInConnectorsByOwner.get(wrapper));

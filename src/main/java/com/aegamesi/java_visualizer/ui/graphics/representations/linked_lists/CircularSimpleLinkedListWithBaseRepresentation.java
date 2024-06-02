@@ -86,7 +86,7 @@ public abstract class CircularSimpleLinkedListWithBaseRepresentation<TLinkedList
         Object fieldObject = elementFieldReference.getFieldValue();
         System.out.println("Field object: " + fieldObject);
         if (fieldObject != null) {
-            RepresentationWithInConnectors var = myCanvas.getRepresentationWithInConnectors( fieldObject);
+            RepresentationWithInConnectors var = myCanvas.getRepresentationWithInConnectors(fieldObject);
             System.out.println("Var: " + var);
 
             if (var != null) {

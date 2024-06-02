@@ -24,9 +24,9 @@ public class HashTableKeyRepresentation extends GeneralHashTableKeyRepresentatio
         super(position, owner, myCanvas, horizontal);
     }
 
-//    public <T> ArrayList<T> setList(Class<T> clazz) {
-//        return new ArrayList<>();
-//    }
+    public <T> ArrayList<T> setList(Class<T> clazz) {
+        return new ArrayList<>();
+    }
 
     public void init() {
         level = 1;
@@ -34,7 +34,7 @@ public class HashTableKeyRepresentation extends GeneralHashTableKeyRepresentatio
 
         outUnsortedFieldItems = new ArrayList<>();
         inUnsortedFieldItems = new ArrayList<>();
-//        Utils.createFieldItem(() -> new UnsortedFieldItem(), outUnsortedFieldItems, "", ownerClass, 0, level);
+      //  Utils.createFieldItem(() -> new UnsortedFieldItem(), outUnsortedFieldItems, "", ownerClass, 0, level);
         try {
             Utils.createFieldItem(() -> new UnsortedFieldItem(), outUnsortedFieldItems, "", owner.getClass(), 0, level);
         } catch (Exception e) {
