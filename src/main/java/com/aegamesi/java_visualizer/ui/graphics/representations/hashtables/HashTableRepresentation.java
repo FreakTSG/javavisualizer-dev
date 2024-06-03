@@ -123,18 +123,36 @@ public class HashTableRepresentation extends CollectionRepresentation<TabelaHash
                 container.setCellSpacing(0);
 
                 keyValue = Utils.getFieldValue(association, key);
-                if (Utils.isPrimitiveOrPrimitiveWrapperType(keyValue.getClass().getSimpleName()) || keyValue.getClass().isEnum() || keyValue instanceof String) {
-                    final NormalTextElement keyNormalTextElement = new NormalTextElement(keyValue.toString(), ConstantsIDS.FONT_SIZE_TEXT - 2);
-                    keyNormalTextElement.setBorderShown(false);
-                    container.add(keyNormalTextElement);
+                if (keyValue != null) {
+                    if (Utils.isPrimitiveOrPrimitiveWrapperType(keyValue.getClass().getSimpleName()) || keyValue.getClass().isEnum() || keyValue instanceof String) {
+                        final NormalTextElement keyNormalTextElement = new NormalTextElement(keyValue.toString(), ConstantsIDS.FONT_SIZE_TEXT - 2);
+                        keyNormalTextElement.setBorderShown(false);
+                        container.add(keyNormalTextElement);
+                    } else {
+                        FieldReference keyFieldReference = new FieldReference(new Dimension(dim, dim), owner, key, Location.CENTER, false);
+                        container.add(keyFieldReference);
+
+                        RepresentationWithInConnectors keyValueRepresentation = myCanvas.getRepresentationWithInConnectors(keyValue);
+                        if (keyValueRepresentation != null) {
+                            addNewConnection(new StraightConnection<>(keyFieldReference.getOutConnector(), keyValueRepresentation));
+                        } else {
+                            System.out.println("Key value representation is null for key: " + keyValue);
+                        }
+                    }
                 } else {
-                    FieldReference keyFieldReference = new FieldReference(new Dimension(dim, dim), owner, key, Location.CENTER, false);
-                    container.add(keyFieldReference);
-                    addNewConnection(new StraightConnection<>(keyFieldReference.getOutConnector(), myCanvas.getRepresentationWithInConnectors(keyValue)));
+                    System.out.println("Key value is null for entry: " + ownerValue);
                 }
+
+                Object valueObject = Utils.getFieldValue(association, value);
                 valueFieldReference = new FieldReference(new Dimension(dim, dim), new Object(), value, Location.CENTER, false);
                 container.add(valueFieldReference);
-                addNewConnection(new StraightConnection<>(valueFieldReference.getOutConnector(), myCanvas.getRepresentationWithInConnectors(Utils.getFieldValue(association, value)), ConstantsIDS.HASH_TABLE_ELEMENTS_CONNECTIONS_COLOR));
+
+                RepresentationWithInConnectors valueRepresentation = myCanvas.getRepresentationWithInConnectors(valueObject);
+                if (valueRepresentation != null) {
+                    addNewConnection(new StraightConnection<>(valueFieldReference.getOutConnector(), valueRepresentation, ConstantsIDS.HASH_TABLE_ELEMENTS_CONNECTIONS_COLOR));
+                } else {
+                    System.out.println("Value representation is null for value: " + valueObject);
+                }
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -175,7 +193,7 @@ public class HashTableRepresentation extends CollectionRepresentation<TabelaHash
                     continue;
                 }
 
-                final EntryRepresentation entryRepresentation = new EntryRepresentation(new Point(), (TabelaHash.Entrada) owner[i], myCanvas);
+                final EntryRepresentation entryRepresentation = new EntryRepresentation(new Point(), owner[i], myCanvas);
                 entryRepresentations.add(entryRepresentation);
                 indexReferenceEntryContainer.add(entryRepresentation.getContainer(), Location.CENTER);
                 addNewConnection(new StraightConnection(indexReference.getOutConnector(), entryRepresentation, Color.RED));
@@ -199,3 +217,4 @@ public class HashTableRepresentation extends CollectionRepresentation<TabelaHash
         }
     }
 }
+

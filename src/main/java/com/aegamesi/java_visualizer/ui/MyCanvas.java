@@ -58,6 +58,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
     private static final int VERTICAL_SPACING = 50;
     private Map<Object, RepresentationWithInConnectors> existingRepresentations = new HashMap<>();
     private final Map<HeapObjectKey, RepresentationWithInConnectors> contentRepresentationMap = new HashMap<>();
+    private final Map<RepresentationWithInConnectors, Point> representationPositions = new HashMap<>();
     private Map<Long, Point> nodePositions = new HashMap<>();
     private String IteratorLabel ;
     private boolean showIterator = false;
@@ -113,18 +114,29 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
     public void createVisualRepresentations(ExecutionTrace trace, MyCanvas canvas) {
         System.out.println("Creating visual representations for the trace");
         Map<Long, HeapEntity> heapMap = buildHeapMap(trace);
+
+        Map<Object, Point> storedPositions = new HashMap<>();
+        for (Map.Entry<Object, RepresentationWithInConnectors> entry : canvas.representationWithInConnectorsByOwner.entrySet()) {
+            storedPositions.put(entry.getKey(), entry.getValue().getPosition());
+        }
+
         canvas.removeAllRepresentations();
+       // for (Frame entity : trace.frames) {
+       //     System.out.println("Creating visual representation for entity: " + entity);
+       //     Value entity2 = entity.locals.get("var1");
+       //     addProjectEntityRepresentation(entity2, canvas);
+       // }
 
         for (HeapEntity entity : trace.heap.values()) {
+
             if(entity instanceof HeapObject HeapObject){
-
-
-
                 System.out.println("HeapObject fields fields: " + HeapObject.fields);
                 System.out.println("HeapObject fields getClass: " + HeapObject.getClass());
                 System.out.println("HeapObject fields getClass Name: " + HeapObject.getClass().getName());
                 System.out.println("HeapObject fields getActualClass: " + HeapObject.getActualClass());
-                if(!HeapObject.label.contains("anonymous")&&!HeapObject.label.contains("No")&&!HeapObject.label.contains("NoComElemento")&&!HeapObject.label.contains("Base")&&!HeapObject.label.contains("Lista")){
+                if(!HeapObject.label.contains("anonymous")&&!HeapObject.label.contains("No")&&!HeapObject.label.contains("NoComElemento")
+                        &&!HeapObject.label.contains("Base")&&!HeapObject.label.contains("Lista")&&!HeapObject.label.contains("Entrada")
+                        &&!HeapObject.label.contains("Associacao")&&!HeapObject.label.contains("TabelaHashComIncrementoPorHash")){
                     addProjectEntityRepresentation(HeapObject, canvas);
                     refreshCanvas(canvas);
                 }
@@ -136,7 +148,6 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
                     if (criterioValue.type == Value.Type.STRING) {
                         String criterioName = criterioValue.stringValue;
-
                         Comparacao<?> comparacao = getComparatorFromString(criterioName);
                         if (comparacao != null) {
                             System.out.println("Comparator: " + comparacao);
@@ -263,6 +274,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                     System.out.println("TabelaHashComIncrementoPorHash: " + tabelaHashComIncrementoPorHash);
 
                     canvas.add(tabelaHashComIncrementoPorHash, new HashTableRepresentation(new Point(0, 0), tabelaHashComIncrementoPorHash, canvas));
+
                     refreshCanvas(canvas);
                 }
 
@@ -903,6 +915,8 @@ System.out.println("entity: " + entity);
         // Atualize a representação (caso necessário)
 
         entityRepresentation.update();
+
+
         canvas.addRepresentationByContent((HeapObject) entity, entityRepresentation);
         System.out.println("entityRepresentation: " + entity+"added to" + entityRepresentation);
         existingRepresentations.put(entity, entityRepresentation);
@@ -1555,11 +1569,14 @@ System.out.println("representationwithinconnectors:" + representationWithInConne
 
 
     public void add(Object owner, RepresentationWithInConnectors representationWithInConnectors) {
-//        representationWithInConnectorsByOwner.put(owner, representationWithInConnectors);
+        Point storedPosition = representationPositions.get(representationWithInConnectors);
+        if (storedPosition != null) {
+            representationWithInConnectors.setPosition(storedPosition);
+        }
         representationWithInConnectorsByOwner.put(owner, representationWithInConnectors);
-//        wrapperById.put(owner.getId(), owner);
         refresh();
     }
+
 
 
     public void refresh() {
@@ -1581,13 +1598,18 @@ System.out.println("representationwithinconnectors:" + representationWithInConne
     @Override
     public void mouseDragged(MouseEvent e) {
         if (draggedRepresentation != null) {
-            draggedRepresentation.setPosition(new Point(e.getX() - dragOffset.x, e.getY() - dragOffset.y));
+            Point newPosition = new Point(e.getX() - dragOffset.x, e.getY() - dragOffset.y);
+            draggedRepresentation.setPosition(newPosition);
+            representationPositions.put(draggedRepresentation, newPosition); // Update position
             repaint();
         }
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
+        if (draggedRepresentation != null) {
+            representationPositions.put(draggedRepresentation, draggedRepresentation.getPosition()); // Store final position
+        }
         draggedRepresentation = null;
         dragOffset = null;
     }
