@@ -49,6 +49,9 @@ public class HashTableRepresentation extends CollectionRepresentation<TabelaHash
 
     @Override
     protected void update() {
+        // Clear the container before updating to avoid duplication
+        container.removeAllGraphicElements();
+
         entryRepresentations = new LinkedList<>();
         super.update();
 
@@ -65,15 +68,9 @@ public class HashTableRepresentation extends CollectionRepresentation<TabelaHash
         container.add(new NormalTextElement(String.valueOf(numeroElementosInativos), ConstantsIDS.FONT_SIZE_TEXT), Location.CENTER);
 
         TabelaHash<?, ?>.Entrada<?, ?>[] table = owner.tabela;
-        for (int i = 0; i < table.length; i++) {
-            if (table[i] != null) {
-                TabelaHash<?, ?>.Entrada<?, ?> entry = table[i];
-                System.out.println("Entry at index " + i + ": " + entry.toString());
-                EntryRepresentation entryRepresentation = new EntryRepresentation(new Point(), entry, myCanvas);
-                entryRepresentations.add(entryRepresentation);
-                container.add(entryRepresentation.getContainer(), Location.CENTER);
-            }
-        }
+
+        EntryTableRepresentation entryTableRepresentation = new EntryTableRepresentation(new Point(), table, myCanvas);
+        container.add(entryTableRepresentation.getContainer(), Location.CENTER);
     }
 
     @Override
@@ -82,11 +79,11 @@ public class HashTableRepresentation extends CollectionRepresentation<TabelaHash
             final Object value = representationWithInConnectors.getOwner();
             Object key = Utils.getFieldValue(value, ConstantsIDS.KEY);
             if (key == null) {
-                JOptionPane.showMessageDialog(null, "Chave nula", "Erro de inserção", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(null, "Chave nula");
                 return;
             }
 
-            ((TabelaHash) owner).inserir(key, value);
+            owner.inserir(key, value);
             super.add(representationWithInConnectors);
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
