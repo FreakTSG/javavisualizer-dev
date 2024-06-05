@@ -21,6 +21,7 @@ import java.awt.*;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.LinkedList;
+import java.util.Map;
 
 import static com.aegamesi.java_visualizer.utils.Utils.invokeMethod;
 
@@ -110,9 +111,12 @@ public class HashTableRepresentation extends CollectionRepresentation<TabelaHash
         @Override
         public void init() {
             try {
+                System.out.println("Initializing EntryRepresentation. Current map size: " + myCanvas.representationWithInConnectorsByOwner.size());
+
                 final TabelaHash.Entrada ownerValue = owner;
                 container.setBackgroundColor((boolean) Utils.getFieldValue(ownerValue, ConstantsIDS.ACTIVE) ? Color.GREEN : Color.YELLOW);
                 final Associacao<?, ?> association = (Associacao<?, ?>) Utils.getFieldValue(ownerValue, ConstantsIDS.ASSOCIATION);
+                System.out.println("Association hashCode: " + System.identityHashCode(association));
                 Field key = association.getClass().getDeclaredField(ConstantsIDS.KEY);
                 Field value = association.getClass().getDeclaredField(ConstantsIDS.VALUE);
 
@@ -130,6 +134,8 @@ public class HashTableRepresentation extends CollectionRepresentation<TabelaHash
                         container.add(keyFieldReference);
 
                         RepresentationWithInConnectors keyValueRepresentation = myCanvas.getRepresentationWithInConnectors(keyValue);
+                        System.out.println("Key Value (identityHashCode: " + System.identityHashCode(keyValue) + ") -> Representation: " + keyValueRepresentation);
+
                         if (keyValueRepresentation != null) {
                             addNewConnection(new StraightConnection<>(keyFieldReference.getOutConnector(), keyValueRepresentation));
                         } else {
@@ -141,14 +147,25 @@ public class HashTableRepresentation extends CollectionRepresentation<TabelaHash
                 }
 
                 Object valueObject = Utils.getFieldValue(association, value);
+                System.out.println("Value Object: " + valueObject + " (identityHashCode: " + System.identityHashCode(valueObject) + ")");
                 valueFieldReference = new FieldReference(new Dimension(dim, dim), new Object(), value, Location.CENTER, false);
                 container.add(valueFieldReference);
 
+                System.out.println("Iterating over representationWithInConnectorsByOwner:");
+                for (Map.Entry<Object, RepresentationWithInConnectors> entry : myCanvas.representationWithInConnectorsByOwner.entrySet()) {
+                    System.out.println("Entry: " + entry);
+                    Object storedKey = entry.getKey();
+                    RepresentationWithInConnectors storedRepresentation = entry.getValue();
+                    System.out.println("Stored Key (identityHashCode: " + System.identityHashCode(storedKey) + ") -> Representation: " + storedRepresentation);
+                }
+
                 RepresentationWithInConnectors valueRepresentation = myCanvas.getRepresentationWithInConnectors(valueObject);
+                System.out.println("Retrieved Value Representation: " + valueRepresentation + " for valueObject: " + valueObject + " (identityHashCode: " + System.identityHashCode(valueObject) + ")");
+
                 if (valueRepresentation != null) {
                     addNewConnection(new StraightConnection<>(valueFieldReference.getOutConnector(), valueRepresentation, ConstantsIDS.HASH_TABLE_ELEMENTS_CONNECTIONS_COLOR));
                 } else {
-                    System.out.println("Value representation is null for value: " + valueObject);
+                    System.out.println("Value representation is null for value: " + valueObject + " (identityHashCode: " + System.identityHashCode(valueObject) + ")");
                 }
 
             } catch (Exception e) {

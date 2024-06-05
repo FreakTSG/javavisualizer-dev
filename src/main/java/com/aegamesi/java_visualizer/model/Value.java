@@ -11,6 +11,7 @@ public class Value {
 	public String stringValue;
 	public char charValue;
 	public long reference;
+	public int integerValue;
 
 	@Override
 	public String toString() {
@@ -21,6 +22,8 @@ public class Value {
 				return "\"" + stringValue + "\"";
 			case LONG:
 				return Long.toString(longValue);
+			case INTEGER:
+				return Integer.toString(integerValue);
 			case DOUBLE:
 				return Double.toString(doubleValue);
 			case BOOLEAN:
@@ -40,6 +43,8 @@ public class Value {
 				return stringValue;
 			case LONG:
 				return longValue;
+			case INTEGER:
+				return integerValue;
 			case DOUBLE:
 				return doubleValue;
 			case BOOLEAN:
@@ -53,18 +58,12 @@ public class Value {
 		}
 	}
 
-	public Number getLongValue() {
-		if (type == Type.LONG) {
-			return longValue;
-		} else if (type == Type.DOUBLE) {
-			return (long) doubleValue;
-		} else {
-			throw new IllegalStateException("Value is not a number");
-		}
-	}
+
 
 	public Class<?> getActualClass() {
 		switch (type) {
+			case INTEGER:
+				return Integer.class;
 			case STRING:
 				return String.class;
 			case LONG:
@@ -83,7 +82,7 @@ public class Value {
 	}
 
 	public enum Type {
-		NULL, VOID, LONG, DOUBLE, BOOLEAN, STRING, CHAR, REFERENCE;
+		NULL, VOID, LONG, DOUBLE, BOOLEAN, STRING, CHAR, REFERENCE,INTEGER;
 	}
 
 	JSONArray toJson() {
@@ -107,6 +106,9 @@ public class Value {
 				break;
 			case REFERENCE:
 				a.put(reference);
+				break;
+			case INTEGER:
+				a.put(integerValue);
 				break;
 		}
 		return a;
@@ -133,6 +135,9 @@ public class Value {
 				break;
 			case REFERENCE:
 				v.reference = a.getLong(1);
+				break;
+			case INTEGER:
+				v.integerValue = a.getInt(1);
 				break;
 		}
 		return v;
