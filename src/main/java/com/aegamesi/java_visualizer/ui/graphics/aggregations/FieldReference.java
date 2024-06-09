@@ -37,10 +37,15 @@ public class FieldReference extends Reference implements AggregateRectangularGra
     }
 
     public FieldReference(Point position, Dimension dimension, Object fieldOwnerObject, Field field, Location outConnectorLocation, boolean manuallyAssigned, boolean showToolTipText) {
-        super(position, dimension, field.getType(), outConnectorLocation, manuallyAssigned);
+        super(position, dimension, field != null ? field.getType() : Object.class, outConnectorLocation, manuallyAssigned);
         this.fieldOwnerObject = fieldOwnerObject;
         this.field = field;
         toolTipManager = new ToolTipManager();
+        if (field == null) {
+            System.out.println("FieldReference initialized with null field.");
+        } else {
+            System.out.println("FieldReference initialized with field: " + field.getName());
+        }
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {
@@ -54,12 +59,14 @@ public class FieldReference extends Reference implements AggregateRectangularGra
 
     @Override
     public Object getFieldValue() {
-        return Utils.getFieldValue(fieldOwnerObject, field);
+        return field != null ? Utils.getFieldValue(fieldOwnerObject, field) : null;
     }
 
     @Override
     public void setFieldValue(Object fieldValue) {
-        Utils.setFieldValue(fieldOwnerObject, field, fieldValue);
+        if (field != null) {
+            Utils.setFieldValue(fieldOwnerObject, field, fieldValue);
+        }
     }
 
     @Override
@@ -81,7 +88,7 @@ public class FieldReference extends Reference implements AggregateRectangularGra
 
     @Override
     public String getCompleteTypeName() {
-        return field.getGenericType().toString();
+        return field != null ? field.getGenericType().toString() : "Unknown";
     }
 
     public Object getFieldOwnerObject() {

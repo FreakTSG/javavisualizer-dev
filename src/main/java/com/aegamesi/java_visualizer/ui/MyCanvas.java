@@ -1,9 +1,11 @@
 package com.aegamesi.java_visualizer.ui;
 
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.ColecaoIteravel;
+import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.IteradorIteravel;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.associativas.estruturas.Associacao;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.associativas.estruturas.TabelaHash;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.associativas.estruturas.TabelaHashComIncrementoPorHash;
+import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.associativas.estruturas.TabelaHashOrdenada;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.naoordenadas.estruturas.ListaDuplaNaoOrdenada;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.naoordenadas.estruturas.ListaSimplesNaoOrdenada;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.ordenadas.estruturas.ListaDuplaOrdenada;
@@ -16,11 +18,13 @@ import com.aegamesi.java_visualizer.ui.graphics.aggregations.Reference;
 import com.aegamesi.java_visualizer.ui.graphics.localizations.Location;
 import com.aegamesi.java_visualizer.ui.graphics.representations.*;
 import com.aegamesi.java_visualizer.ui.graphics.representations.hashtables.HashTableRepresentation;
+import com.aegamesi.java_visualizer.ui.graphics.representations.hashtables.SortedHashTableRepresentation;
 import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.*;
 
 import com.aegamesi.java_visualizer.utils.Vetor2D;
 import com.aegamesi.java_visualizer.aed.Comparacao;
 import com.github.weisj.jsvg.S;
+import kotlin.comparisons.UComparisonsKt;
 import ui.graphics.representations.linked_lists.SortedCircularDoubleLinkedListWithBaseMaxOrderRepresentation;
 
 import javax.swing.*;
@@ -269,7 +273,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                    System.out.println("Sorted SImple list converted "+simpleSortedList);
                    addSortedSimpleListRepresentation(simpleSortedList, canvas);
 
-               }else if (isSortedDoubleList(HeapObject, heapMap)){
+               }else if (HeapObject.label.contains("ListaDuplaOrdenada")) {
                    System.out.println("Entrei na lista Dupla ordenada");
                   ListaDuplaOrdenada<Object> doubleSortedList = convertHeapObjectToSortedDoubleList(HeapObject, heapMap,comparator);
                   System.out.println("Sorted Double list converted "+doubleSortedList);
@@ -286,6 +290,8 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
                     TabelaHashComIncrementoPorHash<?,?> tabelaHashComIncrementoPorHash=convertHeapObjectToTabelaHash(HeapObject, heapMap,canvas);
                     System.out.println("TabelaHashComIncrementoPorHash: " + tabelaHashComIncrementoPorHash);
+
+
 
                     for (TabelaHash<?, ?>.Entrada<?, ?> entrada : tabelaHashComIncrementoPorHash.tabela) {
                         if (entrada != null && entrada.isAtivo()) {
@@ -313,10 +319,42 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
                     refreshCanvas(canvas);
                 }
+                else if (HeapObject.label.contains("TabelaHashOrdenada")) {
+                    System.out.println("TabelaHashOrdenada found: ");
+                    HeapObject noPorChaveHeapObject = (HeapObject) heapMap.get(HeapObject.fields.get("noPorChave").reference);
+                    Long tamanhoValue = noPorChaveHeapObject.fields.get("tamanhoTabelaAnterior") != null ? noPorChaveHeapObject.fields.get("tamanhoTabelaAnterior").longValue : null;
+                    System.out.println("Tamanho da tabela: " + tamanhoValue);
+                    System.out.println("TabelaHashOrdenada fields: " + HeapObject.fields);
+                    System.out.println("TabelaHashOrdenada label: " + HeapObject.label);
+                    System.out.println("TabelaHashOrdenada fields get: " + HeapObject.fields.get("noPorChave"));
 
+                    TabelaHashOrdenada<?, ?> tabelaHashOrdenada = convertHeapObjectToTabelaHashOrdenada(HeapObject, heapMap, canvas,comparator);
+                    System.out.println("TabelaHashOrdenada: " + tabelaHashOrdenada);
+                    ComparatorRepresentation<Comparacao<Object>> comparatorRepresentation =
+                            new ComparatorRepresentation<>(new Point(START_X, START_Y - 50), comparator, canvas);
+                    canvas.add(comparator, comparatorRepresentation);
 
+                    for (TabelaHash<?, ?>.Entrada<?, ?> entrada : tabelaHashOrdenada.noPorChave.tabela) {
+                        if (entrada != null && entrada.isAtivo()) {
+                            Associacao<?, ?> associacao = entrada.getAssociacao();
+                            System.out.println("Associacao found: ");
+                            System.out.println("Associacao hashCode: " + System.identityHashCode(associacao));
 
+                            Object valueObject = associacao.getValor();
+                            System.out.println("Value Object: " + valueObject + " (identityHashCode: " + System.identityHashCode(valueObject) + ")");
 
+                            // Create a new representation for the valueObject
+                            if (isPrimitiveOrEnum(valueObject)) {
+                                PrimitiveOrEnumRepresentation primitiveOrEnumRepresentation = new PrimitiveOrEnumRepresentation(new Point(), valueObject, canvas);
+                                canvas.add(valueObject, primitiveOrEnumRepresentation);
+                                canvas.representationWithInConnectorsByOwner.put(valueObject, primitiveOrEnumRepresentation);
+                            }
+
+                        }
+                    }
+                    canvas.add(tabelaHashOrdenada, new SortedHashTableRepresentation(new Point(0, 0), tabelaHashOrdenada, canvas));
+                    refreshCanvas(canvas);
+                }
             }
         }
 
@@ -328,6 +366,65 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         refreshCanvas(canvas);
         canvas.repaint();
     }
+
+    private TabelaHashOrdenada<Object, Object> convertHeapObjectToTabelaHashOrdenada(HeapObject heapObject, Map<Long, HeapEntity> heapMap, MyCanvas canvas, Comparacao<Object> comparator) {
+        // Extract noPorChave HeapObject
+        HeapObject noPorChaveHeapObject = (HeapObject) heapMap.get(heapObject.fields.get("noPorChave").reference);
+        Long tamanhoValue = noPorChaveHeapObject.fields.get("tamanhoTabelaAnterior") != null ? noPorChaveHeapObject.fields.get("tamanhoTabelaAnterior").longValue : null;
+        if (tamanhoValue == null) {
+            System.out.println("Field 'tamanhoTabelaAnterior' is null or not found.");
+            return null;
+        }
+        long tamanho = tamanhoValue;
+
+        // Create a new TabelaHashOrdenada instance
+        TabelaHashOrdenada<Object, Object> tabelaHashOrdenada = new TabelaHashOrdenada<>(comparator, (int) tamanho);
+
+        // Get the internal TabelaHashComIncrementoPorHash
+        Value tabelaValue = noPorChaveHeapObject.fields.get("tabela");
+        if (tabelaValue.type == Value.Type.REFERENCE) {
+            HeapList tabelaList = (HeapList) heapMap.get(tabelaValue.reference);
+
+            for (int i = 0; i < tabelaList.items.size(); i++) {
+                Value entryValue = tabelaList.items.get(i);
+                if (entryValue != null && entryValue.type == Value.Type.REFERENCE) {
+                    HeapObject entry = (HeapObject) heapMap.get(entryValue.reference);
+                    if (entry != null && entry.fields.get("ativo").booleanValue) {
+                        Value associacaoValue = entry.fields.get("associacao");
+                        if (associacaoValue != null && associacaoValue.type == Value.Type.REFERENCE) {
+                            HeapObject associacao = (HeapObject) heapMap.get(associacaoValue.reference);
+                            System.out.println("Associacao fields: " + associacao.fields);
+                            Value chaveValue = associacao.fields.get("chave");
+                            Value valorValue = associacao.fields.get("valor");
+
+                            // Check if valorValue is a reference and navigate through elemento
+                            if (valorValue != null && valorValue.type == Value.Type.REFERENCE) {
+                                HeapObject valorObj = (HeapObject) heapMap.get(valorValue.reference);
+                                if (valorObj != null) {
+                                    Value elementoValue = valorObj.fields.get("elemento");
+                                    if (elementoValue != null && elementoValue.type == Value.Type.REFERENCE) {
+                                        HeapObject elemento = (HeapObject) heapMap.get(elementoValue.reference);
+                                        valorValue = elemento.fields.get("valor");
+                                    }
+                                }
+                            }
+
+                            Object chave = extractActualValue(chaveValue, heapMap);
+                            Object valor = extractActualValue(valorValue, heapMap);
+
+                            System.out.println("Chave: " + chave + " Valor: " + valor);
+                            tabelaHashOrdenada.inserir(chave, valor);
+                        }
+                    }
+                } else {
+                    System.out.println("Elemento value is null or not a reference for entry at index " + i + ": " + entryValue);
+                }
+            }
+        }
+
+        return tabelaHashOrdenada;
+    }
+
 
     private TabelaHashComIncrementoPorHash<?, ?> convertHeapObjectToTabelaHash(HeapObject heapObject, Map<Long, HeapEntity> heapMap, MyCanvas canvas) {
         long tamanho = heapObject.fields.get("tamanhoTabelaAnterior").longValue;
@@ -718,6 +815,9 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         UnsortedCircularSimpleLinkedListWithBaseRepresentation representation =
                 new UnsortedCircularSimpleLinkedListWithBaseRepresentation(new Point(START_X, START_Y), simpleList, canvas);
         canvas.add(simpleList, representation);
+        //IteradorIteravel<?> var = simpleList.iterador();
+        //var.corrente();
+
 
         calculateNodePositions(simpleList);
         System.out.println("Lista valores:" + simpleList);

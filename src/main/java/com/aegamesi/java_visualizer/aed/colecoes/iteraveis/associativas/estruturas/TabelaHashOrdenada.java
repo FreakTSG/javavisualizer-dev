@@ -21,7 +21,7 @@ public class TabelaHashOrdenada<C, V> implements ColecaoIteravelAssociativa<C, V
     protected Base base;
     protected Comparacao<C> criterio;
 
-    protected TabelaHashComIncrementoPorHash<C, No> noPorChave;
+    public TabelaHashComIncrementoPorHash<C, No> noPorChave;
 
     public TabelaHashOrdenada(Comparacao<C> cp, int tamanho) {
         criterio = cp;
