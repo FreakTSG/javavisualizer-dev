@@ -55,44 +55,12 @@ public class SortedInnerHashTableRepresentation extends CollectionRepresentation
         entryRepresentations = new LinkedList<>();
         super.update();
         TabelaHash ownerValue = owner;
-
         numberOfElements = ownerValue.getNumeroElementos();
 
-        topContainer = new ContainerWithoutInConnectors(new Point(), new Dimension(), true);
-        topContainer.setCellSpacing(0);
-        topContainer.setInnerCellSpacing(20);
-        topContainer.setBorderShown(false);
+        TabelaHash.Entrada[] table = ownerValue.tabela;
 
-        ContainerWithoutInConnectors topLeftContainer = new ContainerWithoutInConnectors(new Point(), new Dimension(), false);
-        topLeftContainer.setCellSpacing(0);
-        topLeftContainer.setBorderShown(false);
-        topContainer.add(topLeftContainer);
-        int dim = 14;
-        try {
-            Field baseField = Utils.getField(ownerValue, ConstantsIDS.BASE);
-            if (baseField == null) {
-                System.out.println("Base field not found in ownerValue.");
-                return;
-            }
-            baseFieldReference = new FieldReference(new Dimension(dim, dim), owner, baseField, Location.CENTER, false);
-            topLeftContainer.add(baseFieldReference, Location.LEFT);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Error retrieving base field: " + e.getMessage());
-            return;
-        }
-
-        TabelaHash<Object, TabelaHashOrdenada<Object, Object>.No>.Entrada<Object, TabelaHashOrdenada<Object, Object>.No>[] table = ownerValue.tabela;
-
-        for (int i = 0; i < table.length; i++) {
-            if (table[i] != null) {
-                entryRepresentations.add(new EntryRepresentation(new Point(), table[i], myCanvas));
-            }
-        }
-
-        for (EntryRepresentation entryRepresentation : entryRepresentations) {
-            container.add(entryRepresentation.getContainer(), Location.CENTER);
-        }
+        EntryTableRepresentation tableRepresentation = new EntryTableRepresentation(new Point(), table, myCanvas);
+        container.add(tableRepresentation.getContainer());
 
         container.add(new NormalTextElement(String.valueOf(numberOfElements), ConstantsIDS.FONT_SIZE_TEXT), Location.CENTER);
         container.add(new NormalTextElement(String.valueOf(ownerValue.getNumeroElementosInativos()), ConstantsIDS.FONT_SIZE_TEXT), Location.CENTER);
@@ -146,7 +114,7 @@ public class SortedInnerHashTableRepresentation extends CollectionRepresentation
         @Override
         public void init() {
             try {
-                final TabelaHash.Entrada ownerValue = owner.getClass().newInstance();
+                final TabelaHash.Entrada ownerValue = owner;
                 container.setBackgroundColor((boolean) Utils.getFieldValue(ownerValue, ConstantsIDS.ACTIVE) ? Color.GREEN : Color.YELLOW);
                 final Associacao association = (Associacao) Utils.getFieldValue(ownerValue, ConstantsIDS.ASSOCIATION);
                 Field key = association.getClass().getDeclaredField(ConstantsIDS.KEY);

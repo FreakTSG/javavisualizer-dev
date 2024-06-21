@@ -98,6 +98,7 @@ public class SortedHashTableRepresentation
         topLeftContainer.add(comparatorFieldReference, Location.LEFT);
         hashTableFieldReference = new FieldReference(new Dimension(dim, dim), owner, Utils.getField(ownerValue, ConstantsIDS.NO_POR_CHAVE), Location.CENTER, false);
         topLeftContainer.add(hashTableFieldReference, Location.LEFT);
+        System.out.println("hashTableFieldReference: " + hashTableFieldReference.getOutConnector());
 
         actualIndex = -1;
         createNode(baseFieldReference);
@@ -111,11 +112,10 @@ public class SortedHashTableRepresentation
         addNewConnection(new StraightConnection(comparatorFieldReference.getOutConnector(), representationWithInConnectors, Color.RED));
 
         TabelaHashComIncrementoPorHash noPorChave = (TabelaHashComIncrementoPorHash) Utils.getFieldValue(ownerValue, ConstantsIDS.NO_POR_CHAVE);
+        System.out.println("noPorChave aaa: " + noPorChave);
         sortedInnerHashTableRepresentation = new SortedInnerHashTableRepresentation(new Point(), noPorChave, this, myCanvas);
-
-        // Ensure that the inner hash table representation is added to the top container
-        listContainer.add(sortedInnerHashTableRepresentation.getContainer(), Location.LEFT);
-
+        addNewConnection(new StraightConnection(hashTableFieldReference.getOutConnector(), sortedInnerHashTableRepresentation, Color.RED));
+        container.add(sortedInnerHashTableRepresentation.getContainer(), Location.LEFT);
         container.update();
         myCanvas.repaint();
     }
@@ -144,21 +144,22 @@ public class SortedHashTableRepresentation
         Associacao associacao = (Associacao) elementFieldReference.getFieldValue();
         if (associacao != null) {
             if (!myCanvas.isCompactMode()) {
-                AssociationRepresentation associationRepresentation = new AssociationRepresentation(new Point(), associacao, myCanvas);
-                associationsContainer.add(associationRepresentation.getContainer());
-                addNewConnection(
-                        new StraightConnection(elementFieldReference.getOutConnector(), associationRepresentation,
-                                ConstantsIDS.LINKED_LIST_ELEMENTS_CONNECTIONS_COLOR));
-            } else {
+              // AssociationRepresentation associationRepresentation = new AssociationRepresentation(new Point(), associacao, myCanvas);
+              // associationsContainer.add(associationRepresentation.getContainer());
+              // addNewConnection(
+              //         new StraightConnection(elementFieldReference.getOutConnector(), associationRepresentation,
+              //                 ConstantsIDS.LINKED_LIST_ELEMENTS_CONNECTIONS_COLOR));
+            }
                 Field value = null;
                 try {
                     value = associacao.getClass().getDeclaredField(ConstantsIDS.VALUE);
+
                     addNewConnection(new StraightConnection<>(elementFieldReference.getOutConnector(), myCanvas.getRepresentationWithInConnectors(Utils.getFieldValue(associacao, value)), ConstantsIDS.HASH_TABLE_ELEMENTS_CONNECTIONS_COLOR));
                 } catch (NoSuchFieldException e) {
                     e.printStackTrace();
                     JOptionPane.showMessageDialog(null, e.getMessage(), "Erro ao obter valor da Associação", JOptionPane.ERROR_MESSAGE);
                 }
-            }
+
         }
 
         FieldReference nextFieldReference = doubleNodeRepresentation.getNextFieldReference();
