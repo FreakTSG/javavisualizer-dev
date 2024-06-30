@@ -2,10 +2,7 @@ package com.aegamesi.java_visualizer.ui;
 
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.ColecaoIteravel;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.IteradorIteravel;
-import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.associativas.estruturas.Associacao;
-import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.associativas.estruturas.TabelaHash;
-import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.associativas.estruturas.TabelaHashComIncrementoPorHash;
-import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.associativas.estruturas.TabelaHashOrdenada;
+import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.associativas.estruturas.*;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.naoordenadas.estruturas.ListaDuplaNaoOrdenada;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.naoordenadas.estruturas.ListaSimplesNaoOrdenada;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.ordenadas.estruturas.ListaDuplaOrdenada;
@@ -68,6 +65,9 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
     private Value currentIndex;
     private Point iteratorSquarePosition; // The position to draw the iterator square
     private Point iteratorTargetPosition; // The target position for the iterator's arrow
+
+    private final Map<Long, HeapObject> entityMap = new HashMap<>();
+    private final Map<Long, RepresentationWithInConnectors> representationMap = new HashMap<>();
 
 
 
@@ -137,7 +137,8 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                 System.out.println("HeapObject fields getActualClass: " + HeapObject.getActualClass());
                 if(!HeapObject.label.contains("anonymous")&&!HeapObject.label.contains("No")&&!HeapObject.label.contains("NoComElemento")
                         &&!HeapObject.label.contains("Base")&&!HeapObject.label.contains("Lista")&&!HeapObject.label.contains("Entrada")
-                        &&!HeapObject.label.contains("Associacao")&&!HeapObject.label.contains("TabelaHashComIncrementoPorHash")){
+                        &&!HeapObject.label.contains("Associacao")&&!HeapObject.label.contains("TabelaHashComIncrementoPorHash")
+                        &&!HeapObject.label.contains("TabelaHashComIncrementoQuadratico")){
                     addProjectEntityRepresentation(HeapObject, canvas);
                     refreshCanvas(canvas);
                 }
@@ -159,17 +160,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                         System.out.println("CRITERIO field is not a STRING.");
                     }
                 }
-                // else if (HeapObject.label.contains("Associacao")) {
-               //    System.out.println("Associacao found: ");
-               //    Object valueObject = HeapObject.fields.get("valor");
-               //    System.out.println("HeapObject identityHashCode: " + System.identityHashCode(HeapObject));
 
-               //    // Ensure valueObject is consistently used
-               //    PrimitiveOrEnumRepresentation primitiveOrEnumRepresentation = new PrimitiveOrEnumRepresentation(new Point(), valueObject, canvas);
-               //    canvas.add(valueObject, primitiveOrEnumRepresentation);
-               //    canvas.representationWithInConnectorsByOwner.put(valueObject, primitiveOrEnumRepresentation);
-               //    System.out.println("representationWithInConnectorsByOwner valores: " + canvas.representationWithInConnectorsByOwner);
-               //}
 
                 else {
                     System.out.println("HeapObject does not contain the field CRITERIO.");
@@ -316,6 +307,45 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
 
                     canvas.add(tabelaHashComIncrementoPorHash, new HashTableRepresentation(new Point(0, 0), tabelaHashComIncrementoPorHash, canvas));
+
+                    refreshCanvas(canvas);
+                }
+                else if(HeapObject.label.contains("TabelaHashComIncrementoQuadratico")){
+                    System.out.println("TabelaHashComIncrementoQuadratico found: " );
+                    long tamanho= HeapObject.fields.get("numeroElementos").longValue;
+                    System.out.println("Tamanho da tabela: "+tamanho);
+                    System.out.println("TabelaHashComIncrementoQuadratico fields: " + HeapObject.fields);
+                    System.out.println("TabelaHashComIncrementoQuadratico label: " + HeapObject.label);
+                    System.out.println("TabelaHashComIncrementoQuadratico fields get: " + HeapObject.fields.get("tabela"));
+
+                    TabelaHashComIncrementoQuadratico<?,?> TabelaHashComIncrementoQuadratico=convertHeapObjectToTabelaHashComIncrementoQuadratico(HeapObject, heapMap,canvas);
+                    System.out.println("TabelaHashComIncrementoPorHash: " + TabelaHashComIncrementoQuadratico);
+
+
+
+                    for (TabelaHash<?, ?>.Entrada<?, ?> entrada : TabelaHashComIncrementoQuadratico.tabela) {
+                        if (entrada != null && entrada.isAtivo()) {
+                            Associacao<?, ?> associacao = entrada.getAssociacao();
+                            System.out.println("Associacao found: ");
+                            System.out.println("Associacao hashCode: " + System.identityHashCode(associacao));
+
+                            Object valueObject = associacao.getValor();
+                            System.out.println("Value Object: " + valueObject + " (identityHashCode: " + System.identityHashCode(valueObject) + ")");
+
+                            // Create a new representation for the valueObject
+                            if(isPrimitiveOrEnum(valueObject)){
+                                PrimitiveOrEnumRepresentation primitiveOrEnumRepresentation = new PrimitiveOrEnumRepresentation(new Point(), valueObject, canvas);
+                                canvas.add(valueObject, primitiveOrEnumRepresentation);
+                                canvas.representationWithInConnectorsByOwner.put(valueObject, primitiveOrEnumRepresentation);
+                            }
+
+
+                            System.out.println("representationWithInConnectorsByOwner valores: " + canvas.representationWithInConnectorsByOwner);
+                        }
+                    }
+
+
+                    canvas.add(TabelaHashComIncrementoQuadratico, new HashTableRepresentation(new Point(0, 0), TabelaHashComIncrementoQuadratico, canvas));
 
                     refreshCanvas(canvas);
                 }
@@ -466,6 +496,48 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         return tabelaHashComIncrementoPorHash;
     }
 
+
+    private TabelaHashComIncrementoQuadratico<?, ?> convertHeapObjectToTabelaHashComIncrementoQuadratico(HeapObject heapObject, Map<Long, HeapEntity> heapMap, MyCanvas canvas) {
+        long tamanho = heapObject.fields.get("numeroElementos").longValue;
+        TabelaHashComIncrementoQuadratico<Object, Object> TabelaHashComIncrementoQuadratico = new TabelaHashComIncrementoQuadratico<>((int) tamanho+5);
+
+        long numeroElementos = heapObject.fields.get("numeroElementos").longValue;
+        System.out.println("Numero de elementos: " + numeroElementos);
+        if (numeroElementos > 0) {
+            Value tabelaValue = heapObject.fields.get("tabela");
+            if (tabelaValue.type == Value.Type.REFERENCE) {
+                HeapList tabelaList = (HeapList) heapMap.get(tabelaValue.reference);
+
+                for (Value entryValue : tabelaList.items) {
+                    if (entryValue != null && entryValue.type == Value.Type.REFERENCE) {
+                        HeapObject entry = (HeapObject) heapMap.get(entryValue.reference);
+                        if (entry != null && entry.fields.get("ativo").booleanValue) {
+                            Value associacaoValue = entry.fields.get("associacao");
+                            if (associacaoValue != null && associacaoValue.type == Value.Type.REFERENCE) {
+                                HeapObject associacao = (HeapObject) heapMap.get(associacaoValue.reference);
+                                Value chaveValue = associacao.fields.get("chave");
+                                Value valorValue = associacao.fields.get("valor");
+
+                                Object chave = extractActualValue(chaveValue, heapMap);
+                                Object valor = extractActualValue(valorValue, heapMap);
+                                System.out.println("Chave: " + chave + " ValorhashCode: " + valor.hashCode());
+
+
+
+
+                                System.out.println("Chave: " + chave + " Valor: " + valor);
+
+                                TabelaHashComIncrementoQuadratico.inserir(chave, valor);
+
+                                System.out.println("Inserted into TabelaHashComIncrementoQuadratico: Chave=" + chave + ", Valor=" + valor);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return TabelaHashComIncrementoQuadratico;
+    }
     private Object extractActualValue(Value value, Map<Long, HeapEntity> heapMap) {
         if (value == null) {
             return null;
@@ -842,11 +914,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         System.out.println("Adding representation for key: " + key + " Value: " + representation);
         contentRepresentationMap.put(key, representation);
     }
-    public void debugContentRepresentationMap() {
-        for (Map.Entry<HeapObjectKey, RepresentationWithInConnectors> entry : contentRepresentationMap.entrySet()) {
-            System.out.println("Key: " + entry.getKey() + " Value: " + entry.getValue());
-        }
-    }
+
 
     private RepresentationWithInConnectors findRepresentationForList(ListaSimplesNaoOrdenada<?> list) {
         for (Map.Entry<Object, RepresentationWithInConnectors> entry : existingRepresentations.entrySet()) {
@@ -1036,32 +1104,46 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
 
 
-    private void addProjectEntityRepresentation(Object entity, MyCanvas canvas) {
+    private void addProjectEntityRepresentation(HeapObject entity, MyCanvas canvas) {
         // Determine a posição inicial para a representação do objeto
         System.out.println("Dentro da funcao addProjectEntity o objeto: " + entity);
 
 
-System.out.println("entity: " + entity);
+        System.out.println("entity: " + entity);
         System.out.println("entity getClass: " + entity.getClass());
 
         ProjectEntityRepresentation<Object> entityRepresentation = new ProjectEntityRepresentation<>(new Point(0,0), entity, canvas);
 
-        // Adicione a representação ao canvas
-        canvas.add(entity, entityRepresentation);
-        // Atualize a representação (caso necessário)
+        HeapObject heapObject = (HeapObject) entity;
+        long entityId = heapObject.id;
+        System.out.println("entityId: " + entityId);
+        System.out.println("entity: " + entity);
+        System.out.println("heapObject: " + heapObject);
+        entityMap.put(entityId, heapObject);
+        System.out.println("entityMap: " + entityMap);
+        representationMap.put(entityId, entityRepresentation);
+        representationWithInConnectorsByOwner.put(entity, entityRepresentation);
 
+
+        canvas.add(entity, entityRepresentation);
         entityRepresentation.update();
+        System.out.println("entityRepresentation: " + entity + " added to " + entityRepresentation);
 
 
         canvas.addRepresentationByContent((HeapObject) entity, entityRepresentation);
         System.out.println("entityRepresentation: " + entity+"added to" + entityRepresentation);
         existingRepresentations.put(entity, entityRepresentation);
-        representationWithInConnectorsByOwner.put(entity, entityRepresentation);
 
-        // Atualize o canvas para refletir as mudanças
+
+
         refreshCanvas(canvas);
-        // Print fields for debugging
+
     }
+
+    public HeapObject getHeapObjectById(long id) {
+        return entityMap.get(id);
+    }
+
     private void calculateNodePositions(ListaSimplesOrdenada<?> simpleList) {
         Point var = representationWithInConnectorsByOwner.get(simpleList).getPosition();
         System.out.println("Numero elementos: " + simpleList.getNumeroElementos());
@@ -1699,9 +1781,12 @@ System.out.println("representationwithinconnectors:" + representationWithInConne
        return representation == null ? Constants.UNKOWN_REF : getFirstReferenceTo(representation);
    }*/
 
-    public RepresentationWithInConnectors getRepresentationWithInConnectors(Object owner) {
-        RepresentationWithInConnectors representation = representationWithInConnectorsByOwner.get(owner);
-        System.out.println("Retrieved: Key (identityHashCode: " + System.identityHashCode(owner) + ") -> Value: " + representation);
+    public RepresentationWithInConnectors getRepresentationWithInConnectors(Object value) {
+        System.out.println("Fetching representation for value: " + value);
+        RepresentationWithInConnectors representation = representationWithInConnectorsByOwner.get(value);
+        if (representation == null) {
+            System.out.println("Representation not found for value: " + value);
+        }
         return representation;
     }
 

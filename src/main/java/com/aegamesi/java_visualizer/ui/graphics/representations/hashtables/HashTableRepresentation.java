@@ -56,10 +56,7 @@ public class HashTableRepresentation extends CollectionRepresentation<TabelaHash
         entryRepresentations = new LinkedList<>();
         super.update();
 
-        if (!(owner instanceof TabelaHashComIncrementoPorHash<?, ?>)) {
-            System.out.println("Owner is not an instance of TabelaHashComIncrementoPorHash");
-            return;
-        }
+
         numberOfElements = owner.getNumeroElementos();
         System.out.println("Number of Elements: " + numberOfElements);
 

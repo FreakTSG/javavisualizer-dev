@@ -50,7 +50,7 @@ public class FieldReference extends Reference implements AggregateRectangularGra
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.defaultWriteObject();
-        out.writeObject(field.getName());
+        out.writeObject(field != null ? field.getName() : null);
     }
 
     public Field getField() {
