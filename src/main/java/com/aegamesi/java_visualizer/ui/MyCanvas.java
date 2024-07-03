@@ -138,12 +138,13 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                 if(!HeapObject.label.contains("anonymous")&&!HeapObject.label.contains("No")&&!HeapObject.label.contains("NoComElemento")
                         &&!HeapObject.label.contains("Base")&&!HeapObject.label.contains("Lista")&&!HeapObject.label.contains("Entrada")
                         &&!HeapObject.label.contains("Associacao")&&!HeapObject.label.contains("TabelaHashComIncrementoPorHash")
-                        &&!HeapObject.label.contains("TabelaHashComIncrementoQuadratico")){
+                        &&!HeapObject.label.contains("TabelaHashComIncrementoQuadratico")
+                        &&!HeapObject.label.contains("Iterador")){
                     addProjectEntityRepresentation(HeapObject, canvas);
                     refreshCanvas(canvas);
                 }
                 if(HeapObject.fields.containsKey("name")){
-                    System.out.println("Comparator found: " );
+                    System.out.println("Comparator found: "+HeapObject );
                     Value criterioValue = HeapObject.fields.get("name");
                     System.out.println("HeapObject fields criterioValue: " + criterioValue);
                     System.out.println("HeapObject fields criterioValue type: " + criterioValue.type);
@@ -936,7 +937,9 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
     private RepresentationWithInConnectors findRepresentationForSortedList(ListaSimplesOrdenada<?> list) {
         for (Map.Entry<Object, RepresentationWithInConnectors> entry : existingRepresentations.entrySet()) {
+            System.out.println("O if esta a dar:  " + (entry.getKey() instanceof ListaSimplesOrdenada<?> && list.equals(entry.getKey())));
             if (entry.getKey() instanceof ListaSimplesOrdenada<?> && list.equals(entry.getKey())) {
+                System.out.println("O resultado da procura: " + entry.getValue());
                 return entry.getValue();
             }
         }
@@ -1161,35 +1164,13 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
 
     private void addSortedSimpleListRepresentation(ListaSimplesOrdenada<?> simpleList, MyCanvas canvas) {
-
         int index = 0;
         for (Object item : simpleList) {
             Point position = calculatePositionForListItem(index);
             System.out.println("Lista ordenada fora do if" + item);
 
-            if (item instanceof HeapObject) {
-                System.out.println("Estou aqui dentro 1\n\n");
-
-                RepresentationWithInConnectors existingRepresentation = findRepresentationForList((ListaSimplesNaoOrdenada<?>) item);
-                if (existingRepresentation != null) {
-                    // Connect to existing representation
-                    canvas.add(item, existingRepresentation);
-                    refreshCanvas(canvas);
-                } else {
-                    System.out.println("Existing Representation is null\n\n");
-                    // Create new representation
-                    UnsortedCircularSimpleLinkedListWithBaseRepresentation nestedListRepresentation =
-                            new UnsortedCircularSimpleLinkedListWithBaseRepresentation(position, (ListaSimplesNaoOrdenada<?>) item, canvas);
-                    //nestedListRepresentation.update();
-                    canvas.add(item, nestedListRepresentation);
-                    existingRepresentations.put(item, nestedListRepresentation);
-                    refreshCanvas(canvas);
-                }
-
-            }
             if (item instanceof ListaDuplaNaoOrdenada<?>) {
                 System.out.println("Estou aqui dentro 1\n\n");
-
                 RepresentationWithInConnectors existingRepresentation = findRepresentationForDoubleList((ListaDuplaNaoOrdenada<?>) item);
                 if (existingRepresentation != null) {
                     // Connect to existing representation
@@ -1205,9 +1186,9 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                     existingRepresentations.put(item, nestedListRepresentation);
                     refreshCanvas(canvas);
                 }
-
             }
             if(item instanceof ListaSimplesOrdenada<?>){
+                System.out.println("Estou aqui dentro 2\n\n");
                 RepresentationWithInConnectors existingRepresentation = findRepresentationForSortedList((ListaSimplesOrdenada<?>) item);
                 if (existingRepresentation != null) {
                     // Connect to existing representation
@@ -1489,7 +1470,6 @@ System.out.println("representationwithinconnectors:" + representationWithInConne
                     ListaSimplesNaoOrdenada<?> innerList = convertHeapObjectToSimpleList(innerListObject, heapMap);
                     doubleList.inserir(innerList);
                 } else if (innerListObject.label.contains("ListaDuplaNaoOrdenada")) {
-
                     ListaDuplaNaoOrdenada<?> innerList = convertHeapObjectToDoubleList(innerListObject, heapMap,canvas,comparator);
                     doubleList.inserir(innerList);
                     //addDoubleListRepresentation(innerList, canvas);
@@ -1544,15 +1524,26 @@ System.out.println("representationwithinconnectors:" + representationWithInConne
             }
             HeapObject currentNode = (HeapObject) entity;
 
-            if (currentNode.fields.get("elemento")!=null) { // Make sure it's not the base sentinel node
+            if (currentNode.fields.get("elemento") != null) { // Make sure it's not the base sentinel node
                 Value dataValue = currentNode.fields.get("elemento");
                 if (dataValue != null) {
-                    Object actualData = dataValue.getActualValue();
-                    if (actualData != null) {
-                        simpleList.inserir(actualData);
-                        System.out.println("Inserted: " + actualData);
+                    // Retrieve the HeapObject directly
+                    if (dataValue.type == Value.Type.REFERENCE) {
+                        HeapObject innerObject = (HeapObject) heapMap.get(dataValue.reference);
+                        if (innerObject != null) {
+                            simpleList.inserir(innerObject);
+                            System.out.println("Inserted HeapObject: " + innerObject);
+                        } else {
+                            System.out.println("Inner Object is null for reference: " + dataValue.reference);
+                        }
                     } else {
-                        System.out.println("Actual Data is null for node with ID: " + currentNode.id);
+                        Object actualData = dataValue.getActualValue();
+                        if (actualData != null) {
+                            simpleList.inserir(actualData);
+                            System.out.println("Inserted Actual Data: " + actualData);
+                        } else {
+                            System.out.println("Actual Data is null for node with ID: " + currentNode.id);
+                        }
                     }
                 } else {
                     System.out.println("Data Value is null for node with ID: " + currentNode.id);
@@ -1586,9 +1577,10 @@ System.out.println("representationwithinconnectors:" + representationWithInConne
                 if (isSimpleList(innerListObject)) {
                     // It's a simple list, convert it to a simple list and add it to the current list
                     ListaSimplesNaoOrdenada<?> innerList = convertHeapObjectToSimpleList(innerListObject, heapMap);
+                    System.out.println("Lista valores:" + innerList+innerList);
                     list.inserir(innerList);
+                    System.out.println("Inserted Simple List: " + innerList);
                 } else if (innerListObject.label.contains("ListaDuplaNaoOrdenada")) {
-
                     ListaDuplaNaoOrdenada<?> innerList = convertHeapObjectToDoubleList(innerListObject, heapMap,canvas,comparator);
                     list.inserir(innerList);
                     //addDoubleListRepresentation(innerList, canvas);
@@ -1605,6 +1597,7 @@ System.out.println("representationwithinconnectors:" + representationWithInConne
                     //Object actualData = extractActualData(customObject);
                     if (customObject != null) {
                         list.inserir(customObject);
+                        System.out.println("Inserted Custom Object: " + customObject);
                     }
                 }
             } else if (dataValue != null) {
@@ -1612,6 +1605,7 @@ System.out.println("representationwithinconnectors:" + representationWithInConne
                 Object actualData = dataValue.getActualValue();
                 if (actualData != null) {
                     list.inserir(actualData);
+                    System.out.println("Inserted Actual Data: " + actualData);
                 }
             }
 

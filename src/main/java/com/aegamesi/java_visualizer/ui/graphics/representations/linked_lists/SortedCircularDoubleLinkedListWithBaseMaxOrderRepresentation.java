@@ -48,7 +48,7 @@ public class SortedCircularDoubleLinkedListWithBaseMaxOrderRepresentation extend
     @Override
     public void update() {
         super.update();
-        StraightConnection comparatorConnection = new StraightConnection(comparatorFieldReference.getOutConnector(), myCanvas.getRepresentationWithInConnectors((owner)), Color.RED);
+        StraightConnection comparatorConnection = new StraightConnection(comparatorFieldReference.getOutConnector(), myCanvas.getRepresentationWithInConnectors((owner.getComparador())), Color.RED);
 
         connections.add(comparatorConnection);
         myCanvas.add(comparatorConnection);

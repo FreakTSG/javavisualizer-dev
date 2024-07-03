@@ -11,7 +11,7 @@ import javax.swing.*;
 import java.awt.*;
 
 public class SortedCircularSimpleLinkedListWithBaseMaxOrderRepresentation extends
-        SortedCircularSimpleLinkedListAlsoWithBaseRepresentation<ListaSimplesOrdenada, ListaSimplesOrdenada.No> {
+        SortedCircularSimpleLinkedListAlsoWithBaseRepresentation<ListaSimplesOrdenada, ListaSimplesOrdenada.No>{
     private static final long serialVersionUID = 1L;
 
 
