@@ -1,5 +1,6 @@
 package com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists;
 
+import com.aegamesi.java_visualizer.model.HeapObject;
 import com.aegamesi.java_visualizer.ui.MyCanvas;
 import com.aegamesi.java_visualizer.ui.graphics.*;
 import com.aegamesi.java_visualizer.ui.graphics.representations.GeneralRepresentation;
@@ -15,8 +16,10 @@ import com.aegamesi.java_visualizer.ui.graphics.aggregations.Container;
 import com.github.weisj.jsvg.S;
 
 
+import javax.swing.*;
 import java.awt.*;
 import java.lang.reflect.Array;
+import java.util.Map;
 
 public class ArrayRepresentation extends GeneralRepresentation<Object> {
     private static final long serialVersionUID = 1L;
@@ -25,6 +28,7 @@ public class ArrayRepresentation extends GeneralRepresentation<Object> {
     public ArrayRepresentation(Object owner, String componentTypeName, MyCanvas canvas) {
         super(new Point(), owner, canvas, true);
         this.componentTypeName = componentTypeName;
+
     }
 
     public ArrayRepresentation(Point position, Object owner, String componentTypeName, MyCanvas canvas) {
@@ -33,10 +37,25 @@ public class ArrayRepresentation extends GeneralRepresentation<Object> {
     }
 
     public void init() {
-        container.setTopCellSpacing(0); // é reposto depois quando se remove o contentor interno
+        SwingWorker<Void, Void> worker = new SwingWorker<>() {
+            @Override
+            protected Void doInBackground() {
+                initializeInBackground();
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                myCanvas.repaint();
+            }
+        };
+        worker.execute();
+    }
+
+    private void initializeInBackground() {
+        container.setTopCellSpacing(0);
         container.setLeftCellSpacing(0);
         container.setInnerCellSpacing(0);
-
         container.setHorizontal(false);
         container.setTopCellSpacing(4);
 
@@ -57,11 +76,22 @@ public class ArrayRepresentation extends GeneralRepresentation<Object> {
                 container.add(createAggregateGraphicElementWithIndex(reference, i), Location.RIGHT);
 
                 Object targetObject = Array.get(owner, i);
+
+                System.out.println("Iterating over representationWithInConnectorsByOwner:");
+                for (Map.Entry<Object, RepresentationWithInConnectors> entry : myCanvas.representationWithInConnectorsByOwner.entrySet()) {
+                    System.out.println("Entry: " + entry);
+                    Object storedKey = entry.getKey();
+                    RepresentationWithInConnectors storedRepresentation = entry.getValue();
+                    System.out.println("Stored Key (identityHashCode: " + System.identityHashCode(storedKey) + ") -> Representation: " + storedRepresentation + " for entry: " + entry);
+                }
+
+                System.out.println("Target object: " + targetObject);
+                System.out.println("RepresentationWithInConnectors for target object: " + myCanvas.getRepresentationForHeapObject((HeapObject) targetObject));
                 RepresentationWithInConnectors<?> targetRepresentation = myCanvas.wrapObjectIfNeeded(targetObject);
                 if (targetRepresentation != null) {
                     System.out.println("Wrapped target object: " + targetObject);
-                    myCanvas.add(targetObject, targetRepresentation);
-                    add(reference.getOutConnector(), targetRepresentation);
+                    //myCanvas.add(targetObject, targetRepresentation);
+                    add(reference.getOutConnector(), myCanvas.getRepresentationForHeapObject((HeapObject) targetObject));
                 } else {
                     System.err.println("Could not wrap target object: " + targetObject);
                 }

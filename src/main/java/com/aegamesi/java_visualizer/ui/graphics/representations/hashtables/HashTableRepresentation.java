@@ -50,16 +50,11 @@ public class HashTableRepresentation extends CollectionRepresentation<TabelaHash
 
     @Override
     protected void update() {
-        // Clear the container before updating to avoid duplication
         container.removeAllGraphicElements();
-
         entryRepresentations = new LinkedList<>();
         super.update();
 
-
         numberOfElements = owner.getNumeroElementos();
-        System.out.println("Number of Elements: " + numberOfElements);
-
         container.add(new NormalTextElement(String.valueOf(numberOfElements), ConstantsIDS.FONT_SIZE_TEXT), Location.CENTER);
 
         int numeroElementosInativos = owner.numeroElementosInativos;
@@ -67,8 +62,32 @@ public class HashTableRepresentation extends CollectionRepresentation<TabelaHash
 
         TabelaHash<?, ?>.Entrada<?, ?>[] table = owner.tabela;
 
+        SwingWorker<Void, Void> worker = new SwingWorker<>() {
+            @Override
+            protected Void doInBackground() {
+                createEntryTableRepresentation(table);
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    get();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                myCanvas.repaint();
+            }
+        };
+        worker.execute();
+    }
+
+    private void createEntryTableRepresentation(TabelaHash<?, ?>.Entrada<?, ?>[] table) {
         EntryTableRepresentation entryTableRepresentation = new EntryTableRepresentation(new Point(), table, myCanvas);
-        container.add(entryTableRepresentation.getContainer(), Location.CENTER);
+        SwingUtilities.invokeLater(() -> {
+            container.add(entryTableRepresentation.getContainer(), Location.CENTER);
+            myCanvas.repaint();
+        });
     }
 
     @Override
@@ -105,15 +124,34 @@ public class HashTableRepresentation extends CollectionRepresentation<TabelaHash
             super(position, entry, canvas, true);
         }
 
+
         @Override
         public void init() {
-            try {
-                System.out.println("Initializing EntryRepresentation. Current map size: " + myCanvas.representationWithInConnectorsByOwner.size());
+            SwingWorker<Void, Void> worker = new SwingWorker<>() {
+                @Override
+                protected Void doInBackground() {
+                    initializeEntryRepresentation();
+                    return null;
+                }
 
+                @Override
+                protected void done() {
+                    try {
+                        get();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    myCanvas.repaint();
+                }
+            };
+            worker.execute();
+        }
+
+        private void initializeEntryRepresentation() {
+            try {
                 final TabelaHash.Entrada ownerValue = owner;
                 container.setBackgroundColor((boolean) Utils.getFieldValue(ownerValue, ConstantsIDS.ACTIVE) ? Color.GREEN : Color.YELLOW);
                 final Associacao<?, ?> association = (Associacao<?, ?>) Utils.getFieldValue(ownerValue, ConstantsIDS.ASSOCIATION);
-                System.out.println("Association hashCode: " + System.identityHashCode(association));
                 Field key = association.getClass().getDeclaredField(ConstantsIDS.KEY);
                 Field value = association.getClass().getDeclaredField(ConstantsIDS.VALUE);
 
@@ -131,38 +169,19 @@ public class HashTableRepresentation extends CollectionRepresentation<TabelaHash
                         container.add(keyFieldReference);
 
                         RepresentationWithInConnectors keyValueRepresentation = myCanvas.getRepresentationWithInConnectors(keyValue);
-                        System.out.println("Key Value (identityHashCode: " + System.identityHashCode(keyValue) + ") -> Representation: " + keyValueRepresentation);
-
                         if (keyValueRepresentation != null) {
                             addNewConnection(new StraightConnection<>(keyFieldReference.getOutConnector(), keyValueRepresentation));
-                        } else {
-                            System.out.println("Key value representation is null for key: " + keyValue);
                         }
                     }
-                } else {
-                    System.out.println("Key value is null for entry: " + ownerValue);
                 }
 
                 Object valueObject = Utils.getFieldValue(association, value);
-                System.out.println("Value Object: " + valueObject + " (identityHashCode: " + System.identityHashCode(valueObject) + ")");
                 valueFieldReference = new FieldReference(new Dimension(dim, dim), new Object(), value, Location.CENTER, false);
                 container.add(valueFieldReference);
 
-                System.out.println("Iterating over representationWithInConnectorsByOwner:");
-                for (Map.Entry<Object, RepresentationWithInConnectors> entry : myCanvas.representationWithInConnectorsByOwner.entrySet()) {
-                    System.out.println("Entry: " + entry);
-                    Object storedKey = entry.getKey();
-                    RepresentationWithInConnectors storedRepresentation = entry.getValue();
-                    System.out.println("Stored Key (identityHashCode: " + System.identityHashCode(storedKey) + ") -> Representation: " + storedRepresentation);
-                }
-
                 RepresentationWithInConnectors valueRepresentation = myCanvas.getRepresentationWithInConnectors(valueObject);
-                System.out.println("Retrieved Value Representation: " + valueRepresentation + " for valueObject: " + valueObject + " (identityHashCode: " + System.identityHashCode(valueObject) + ")");
-
                 if (valueRepresentation != null) {
                     addNewConnection(new StraightConnection<>(valueFieldReference.getOutConnector(), valueRepresentation, ConstantsIDS.HASH_TABLE_ELEMENTS_CONNECTIONS_COLOR));
-                } else {
-                    System.out.println("Value representation is null for value: " + valueObject + " (identityHashCode: " + System.identityHashCode(valueObject) + ")");
                 }
 
             } catch (Exception e) {

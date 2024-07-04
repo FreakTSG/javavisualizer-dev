@@ -1,7 +1,5 @@
 package com.aegamesi.java_visualizer.ui;
 
-import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.ColecaoIteravel;
-import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.IteradorIteravel;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.associativas.estruturas.*;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.naoordenadas.estruturas.ListaDuplaNaoOrdenada;
 import com.aegamesi.java_visualizer.aed.colecoes.iteraveis.lineares.naoordenadas.estruturas.ListaSimplesNaoOrdenada;
@@ -11,7 +9,6 @@ import com.aegamesi.java_visualizer.model.*;
 import com.aegamesi.java_visualizer.model.Frame;
 import com.aegamesi.java_visualizer.ui.graphics.*;
 import com.aegamesi.java_visualizer.ui.graphics.aggregations.ArrayReference;
-import com.aegamesi.java_visualizer.ui.graphics.aggregations.Reference;
 import com.aegamesi.java_visualizer.ui.graphics.localizations.Location;
 import com.aegamesi.java_visualizer.ui.graphics.representations.*;
 import com.aegamesi.java_visualizer.ui.graphics.representations.hashtables.HashTableRepresentation;
@@ -20,8 +17,6 @@ import com.aegamesi.java_visualizer.ui.graphics.representations.linked_lists.*;
 
 import com.aegamesi.java_visualizer.utils.Vetor2D;
 import com.aegamesi.java_visualizer.aed.Comparacao;
-import com.github.weisj.jsvg.S;
-import kotlin.comparisons.UComparisonsKt;
 import ui.graphics.representations.linked_lists.SortedCircularDoubleLinkedListWithBaseMaxOrderRepresentation;
 
 import javax.swing.*;
@@ -38,6 +33,7 @@ import java.util.*;
 
 import static com.aegamesi.java_visualizer.model.HeapObject.*;
 
+
 public class MyCanvas extends JPanel implements MouseListener, MouseMotionListener {
     private RepresentationWithInConnectors draggedRepresentation = null;
     private Point dragOffset = null;
@@ -47,6 +43,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
     private static int i = 0;
     private final LinkedList<PositionalGraphicElement> positionalGraphicElements;
     public final HashMap<Object, RepresentationWithInConnectors> representationWithInConnectorsByOwner;
+    private Map<HeapObject, RepresentationWithInConnectors<?>> heapObjectToRepresentationMap = new HashMap<>();
 
     private final HashMap<OutConnector, Connection> connectionByOutConnector;
     private final boolean compactMode;
@@ -125,6 +122,16 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         }
 
         canvas.removeAllRepresentations();
+
+       // for (Frame frame : trace.frames) {
+       //     System.out.println("Frame: " + frame.name);
+       //     for (Map.Entry<String, Value> localEntry : frame.locals.entrySet()) {
+       //         String varName = localEntry.getKey();
+       //         Value varValue = localEntry.getValue();
+       //         System.out.println("Local variable: " + varName + " = " + varValue);
+//
+       //     }
+       // }
 
 
         for (HeapEntity entity : trace.heap.values()) {
@@ -240,7 +247,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                     System.out.println("Entrei na lista simples nao ordenada");
                     ListaSimplesNaoOrdenada<?> simpleList=convertHeapObjectToListofLists(HeapObject, heapMap,canvas,comparator);
                     System.out.println("Simple list converted "+simpleList);
-                    addSimpleListRepresentation(simpleList, canvas);
+                    addSimpleListRepresentation(simpleList, canvas, HeapObject);
 
                 } else if(HeapObject.label.contains("ListaDuplaNaoOrdenada")){
 
@@ -248,7 +255,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                    System.out.println("HeapObject fields: " + HeapObject.fields);
                   ListaDuplaNaoOrdenada<?> doubleList=convertHeapObjectToDoubleList(HeapObject, heapMap,canvas,comparator);
                   System.out.println("Double list converted "+doubleList);
-                  addDoubleListRepresentation(doubleList, canvas);
+                  addDoubleListRepresentation(doubleList, canvas,HeapObject);
 
                }else if(HeapObject.label.contains("Iterador")){
 
@@ -263,13 +270,13 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                    System.out.println("Entrei na lista Simples ordenada");
                    ListaSimplesOrdenada<Object> simpleSortedList = convertHeapObjectToSortedSimpleList(HeapObject, heapMap,comparator);
                    System.out.println("Sorted SImple list converted "+simpleSortedList);
-                   addSortedSimpleListRepresentation(simpleSortedList, canvas);
+                   addSortedSimpleListRepresentation(simpleSortedList, canvas,HeapObject);
 
                }else if (HeapObject.label.contains("ListaDuplaOrdenada")) {
                    System.out.println("Entrei na lista Dupla ordenada");
                   ListaDuplaOrdenada<Object> doubleSortedList = convertHeapObjectToSortedDoubleList(HeapObject, heapMap,comparator);
                   System.out.println("Sorted Double list converted "+doubleSortedList);
-                  addSortedDoubleListRepresentation(doubleSortedList, canvas);
+                  addSortedDoubleListRepresentation(doubleSortedList, canvas,HeapObject);
 
                }
                 else if (HeapObject.label.contains("TabelaHashComIncrementoPorHash")) {
@@ -462,7 +469,6 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         TabelaHashComIncrementoPorHash<Object, Object> tabelaHashComIncrementoPorHash = new TabelaHashComIncrementoPorHash<>((int) tamanho);
 
         long numeroElementos = heapObject.fields.get("numeroElementos").longValue;
-        System.out.println("Numero de elementos: " + numeroElementos);
         if (numeroElementos > 0) {
             Value tabelaValue = heapObject.fields.get("tabela");
             if (tabelaValue.type == Value.Type.REFERENCE) {
@@ -480,13 +486,6 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
                                 Object chave = extractActualValue(chaveValue, heapMap);
                                 Object valor = extractActualValue(valorValue, heapMap);
-                                System.out.println("Chave: " + chave + " ValorhashCode: " + valor.hashCode());
-
-
-
-
-                                System.out.println("Chave: " + chave + " Valor: " + valor);
-
                                 tabelaHashComIncrementoPorHash.inserir(chave, valor);
                             }
                         }
@@ -496,6 +495,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         }
         return tabelaHashComIncrementoPorHash;
     }
+
 
 
     private TabelaHashComIncrementoQuadratico<?, ?> convertHeapObjectToTabelaHashComIncrementoQuadratico(HeapObject heapObject, Map<Long, HeapEntity> heapMap, MyCanvas canvas) {
@@ -553,14 +553,11 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                 HeapEntity entity = heapMap.get(value.reference);
                 if (entity instanceof HeapObject) {
                     HeapObject heapObject = (HeapObject) entity;
-                    System.out.println("HeapObject fields: " + heapObject.fields);
-                    // Attempting to get an actual value field within the HeapObject
                     Value actualValue = heapObject.fields.get("valor");
                     if (actualValue != null) {
-                        System.out.println("Extracted nested actual value: " + actualValue);
                         return extractActualValue(actualValue, heapMap);
                     }
-                    return heapObject; // return the entire object if no specific value is found
+                    return heapObject;
                 }
                 return entity;
             default:
@@ -614,7 +611,8 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                 Value value = heapList.items.get(i);
                 if (value.type == Value.Type.REFERENCE) {
                     long targetId = value.reference;
-                    RepresentationWithInConnectors<?> targetRepresentation = representationWithInConnectorsByOwner.get(targetId);
+                    RepresentationWithInConnectors<?> targetRepresentation = canvas.getRepresentationWithInConnectors(targetId);
+                    System.out.println("Target representation for ID " + targetId + ": " + targetRepresentation);
                     if (targetRepresentation != null) {
                         ArrayReference arrayReference = new ArrayReference(array, i, Location.CENTER, true);
                         arrayRepresentation.add(arrayReference.getOutConnector(), targetRepresentation);
@@ -795,7 +793,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         canvas.repaint();
     }
 
-    private void addSimpleListRepresentation(ListaSimplesNaoOrdenada<?> simpleList, MyCanvas canvas) {
+    private void addSimpleListRepresentation(ListaSimplesNaoOrdenada<?> simpleList, MyCanvas canvas, HeapObject heapObject) {
         int index = 0;
         for (Object item : simpleList) {
             Point position = calculatePositionForListItem(index);
@@ -895,7 +893,11 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         calculateNodePositions(simpleList);
         System.out.println("Lista valores:" + simpleList);
         existingRepresentations.put(simpleList, representation);
+        System.out.println("EXISTING REPRESENTATIONS: " + existingRepresentations);
         canvas.representationWithInConnectorsByOwner.put(simpleList, representation);
+        System.out.println("REPRESENTATION WITH IN CONNECTORS BY OWNER: " + canvas.representationWithInConnectorsByOwner);
+
+        canvas.addRepresentationForHeapObject(heapObject, representation);
         refreshCanvas(canvas);
 
     }
@@ -968,7 +970,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
     }
 
 
-    private void addDoubleListRepresentation(ListaDuplaNaoOrdenada<?> doubleList, MyCanvas canvas) {
+    private void addDoubleListRepresentation(ListaDuplaNaoOrdenada<?> doubleList, MyCanvas canvas, HeapObject heapObject) {
         // Logic to create a visual representation for the double list and add it to the canvas
         int index = 0;
         for (Object item : doubleList) {
@@ -1067,6 +1069,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
        System.out.println("nodePositions:" + nodePositions);
         representation.update();
         existingRepresentations.put(doubleList, representation);
+        canvas.addRepresentationForHeapObject(heapObject, representation);
         canvas.representationWithInConnectorsByOwner.put(doubleList, representation);
         refreshCanvas(canvas);
 
@@ -1126,6 +1129,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
         System.out.println("entityMap: " + entityMap);
         representationMap.put(entityId, entityRepresentation);
         representationWithInConnectorsByOwner.put(entity, entityRepresentation);
+        canvas.addRepresentationForHeapObject(heapObject, entityRepresentation);
 
 
         canvas.add(entity, entityRepresentation);
@@ -1163,7 +1167,7 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
 
 
 
-    private void addSortedSimpleListRepresentation(ListaSimplesOrdenada<?> simpleList, MyCanvas canvas) {
+    private void addSortedSimpleListRepresentation(ListaSimplesOrdenada<?> simpleList, MyCanvas canvas, HeapObject heapObject) {
         int index = 0;
         for (Object item : simpleList) {
             Point position = calculatePositionForListItem(index);
@@ -1241,6 +1245,8 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
                 new SortedCircularSimpleLinkedListWithBaseMaxOrderRepresentation(new Point(START_X, START_Y), simpleList, canvas); // Adjust the position as needed
         canvas.add(simpleList, sortedSingleList);
 
+        canvas.addRepresentationForHeapObject(heapObject, sortedSingleList);
+
 
 System.out.println("representationwithinconnectors:" + representationWithInConnectorsByOwner);
 
@@ -1259,7 +1265,7 @@ System.out.println("representationwithinconnectors:" + representationWithInConne
 
 
 
-    private void addSortedDoubleListRepresentation(ListaDuplaOrdenada<?> doubleList, MyCanvas canvas) {
+    private void addSortedDoubleListRepresentation(ListaDuplaOrdenada<?> doubleList, MyCanvas canvas, HeapObject heapObject) {
         int index = 0;
         for (Object item : doubleList) {
             Point position = calculatePositionForListItem(index);
@@ -1288,6 +1294,7 @@ System.out.println("representationwithinconnectors:" + representationWithInConne
         System.out.println("Lista valores:" + doubleList);
         existingRepresentations.put(doubleList, sortedDoubleList);
         canvas.representationWithInConnectorsByOwner.put(doubleList, sortedDoubleList);
+        canvas.addRepresentationForHeapObject(heapObject, sortedDoubleList);
         refreshCanvas(canvas);
     }
 
@@ -1612,6 +1619,14 @@ System.out.println("representationwithinconnectors:" + representationWithInConne
             headValue = currentNode.fields.get("seguinte"); // Move to the next node
         }
         return list;
+    }
+
+    public RepresentationWithInConnectors<?> getRepresentationForHeapObject(HeapObject heapObject) {
+        return heapObjectToRepresentationMap.get(heapObject);
+    }
+
+    public void addRepresentationForHeapObject(HeapObject heapObject, RepresentationWithInConnectors<?> representation) {
+        heapObjectToRepresentationMap.put(heapObject, representation);
     }
 
 
