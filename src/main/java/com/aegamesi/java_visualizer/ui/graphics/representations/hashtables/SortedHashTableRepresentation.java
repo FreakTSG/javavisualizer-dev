@@ -144,11 +144,11 @@ public class SortedHashTableRepresentation
         Associacao associacao = (Associacao) elementFieldReference.getFieldValue();
         if (associacao != null) {
             if (!myCanvas.isCompactMode()) {
-              // AssociationRepresentation associationRepresentation = new AssociationRepresentation(new Point(), associacao, myCanvas);
-              // associationsContainer.add(associationRepresentation.getContainer());
-              // addNewConnection(
-              //         new StraightConnection(elementFieldReference.getOutConnector(), associationRepresentation,
-              //                 ConstantsIDS.LINKED_LIST_ELEMENTS_CONNECTIONS_COLOR));
+               AssociationRepresentation associationRepresentation = new AssociationRepresentation(new Point(), associacao, myCanvas);
+               associationsContainer.add(associationRepresentation.getContainer());
+               addNewConnection(
+                       new StraightConnection(elementFieldReference.getOutConnector(), associationRepresentation,
+                               ConstantsIDS.LINKED_LIST_ELEMENTS_CONNECTIONS_COLOR));
             }
                 Field value = null;
                 try {

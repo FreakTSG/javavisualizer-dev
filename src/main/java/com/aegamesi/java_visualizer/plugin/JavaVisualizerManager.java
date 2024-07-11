@@ -138,7 +138,11 @@ public class JavaVisualizerManager implements XDebugSessionListener {
 
 			Tracer t = new Tracer(thread);
 			panel.setTrace(t.getModel());
+		} catch (com.sun.jdi.InvalidStackFrameException e) {
+			System.err.println("InvalidStackFrameException: " + e.getMessage());
+			// Handle the specific case where the thread has been resumed
 		} catch (Exception e) {
+			System.err.println("Exception during traceAndVisualize: " + e.getMessage());
 			e.printStackTrace();
 		}
 	}

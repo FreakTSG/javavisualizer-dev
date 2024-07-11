@@ -88,6 +88,34 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
     }
 
 
+    public void resetCanvas() {
+        // Clear all relevant collections and maps
+        positionalGraphicElements.clear();
+        representationWithInConnectorsByOwner.clear();
+        connectionByOutConnector.clear();
+        nodePositions.clear();
+        existingRepresentations.clear();
+        contentRepresentationMap.clear();
+        heapObjectToRepresentationMap.clear();
+        showIterator = false;
+        iteratorSquarePosition = null;
+        iteratorTargetPosition = null;
+
+        // Remove and re-add the canvas component to ensure it is reset
+        Container parent = this.getParent();
+        if (parent != null) {
+            parent.remove(this);
+            parent.add(this);
+        }
+
+        // Force garbage collection to clear any lingering references
+        System.gc();
+
+        System.out.println("Canvas state has been reset.");
+    }
+
+
+
     public void rebuildRepresentations() {
         for (RepresentationWithInConnectors representation : representationWithInConnectorsByOwner.values()) {
             if (representation instanceof DefaultRepresentation) {
@@ -106,7 +134,13 @@ public class MyCanvas extends JPanel implements MouseListener, MouseMotionListen
     }
 
     public void updateRepresentations(ExecutionTrace trace) {
-        createVisualRepresentations(trace, this); // You need to have this method defined based on your mock test
+        resetCanvas();  // Reset the state before updating
+        try {
+            createVisualRepresentations(trace, this);
+        } catch (Exception e) {
+            System.err.println("Exception during updateRepresentations: " + e.getMessage());
+            e.printStackTrace();
+        }
         revalidate();
         repaint();
     }
@@ -1659,6 +1693,7 @@ System.out.println("representationwithinconnectors:" + representationWithInConne
         return null;
     }
 
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -1667,26 +1702,26 @@ System.out.println("representationwithinconnectors:" + representationWithInConne
         transform.scale(zoom, zoom);
         g2.setTransform(transform);
 
-        for (RepresentationWithInConnectors representationWithInConnectors : representationWithInConnectorsByOwner.values()) {
-            //System.out.println("Representation: " + representationWithInConnectors + " Position: " + representationWithInConnectors.getPosition());
-            representationWithInConnectors.paint(g);
-        }
-        for (Connection connection : connectionByOutConnector.values()) {
-            connection.paint(g);
-        }
-        for (PositionalGraphicElement positionalGraphicElement : positionalGraphicElements) {
-            positionalGraphicElement.paint(g);
+        try {
+            for (RepresentationWithInConnectors representation : representationWithInConnectorsByOwner.values()) {
+                representation.paint(g);
+            }
+            for (Connection connection : connectionByOutConnector.values()) {
+                connection.paint(g);
+            }
+            for (PositionalGraphicElement positionalGraphicElement : positionalGraphicElements) {
+                positionalGraphicElement.paint(g);
+            }
+
+            if (showIterator && iteratorSquarePosition != null && iteratorTargetPosition != null) {
+                drawIteratorWithLabel(g2,iteratorSquarePosition,iteratorTargetPosition,IteratorLabel);
+            }
+        } catch (Exception e) {
+            System.err.println("Exception during paintComponent: " + e.getMessage());
+            e.printStackTrace();
         }
 
-        if (showIterator && iteratorSquarePosition != null && iteratorTargetPosition != null) {
-            drawIteratorWithLabel(g2,iteratorSquarePosition,iteratorTargetPosition,IteratorLabel);
-        }
-//        g.drawString( mousePosition.x + "," + mousePosition.y + "   ZOOM=" + zoom + "   SIZE=" + getSize().width + "x" + getSize().height, 10, 10);
-//        g.drawString( mousePosition.x + "," + mousePosition.y + "   ZOOM=" + zoom + "   SIZE=" + getSize().width + "x" + getSize().height, 10, 10);
-//        g.drawString("ActualFilename=->" + actualFilename + "<-" + mousePosition.x + "," + mousePosition.y + "   ZOOM=" + zoom + "   SIZE=" + getSize().width + "x" + getSize().height, 10, 10);
-//        g.drawString("showVar=" + showVar, 10, 10);
-
-
+        refreshCanvas(this);
     }
 
     public void remove(Connection connection) {

@@ -46,18 +46,12 @@ public class IDSToolWindow {
         ClassLoader classLoader = getClass().getClassLoader();
         ResourceBundle.clearCache(classLoader);
         java.beans.Introspector.flushCaches();
-
-//        ResourceBundle.clearCache(urlClassLoader);
-
         try {
-//            ByteArrayOutputStream byteArrayOutputStream = canvas.saveStateToMemory();
             final File root = new File(".");
             urlClassLoader = new URLClassLoader(new URL[]{root.toURI().toURL()}, getClass().getClassLoader());
-//            canvas.loadStateFromMemory(byteArrayOutputStream);
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
-
     }
 
     public URLClassLoader getUrlClassLoader() {
