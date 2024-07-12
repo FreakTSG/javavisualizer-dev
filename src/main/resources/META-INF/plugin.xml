@@ -1,7 +1,7 @@
 <idea-plugin>
-  <id>com.aegamesi.java_visualizer.plugin</id>
-  <name>Java Visualizer</name>
-  <vendor email="eli.lipsitz@gmail.com" url="https://github.com/elipsitz">Eli Lipsitz</vendor>
+  <id>com.aegamesi.ViDaS.plugin</id>
+  <name>ViDaS</name>
+  <vendor url="https://github.com/FreakTSG/javavisualizer-dev">André Silva and Tiago Conceição</vendor>
 
   <description><![CDATA[
       A tool to visualize the call stack and objects on the heap (as a box and

@@ -86,7 +86,7 @@ public class JavaVisualizerManager implements XDebugSessionListener {
 		content = ui.createContent(
 				CONTENT_ID,
 				container,
-				"Java Visualizer",
+				"ViDaS",
 				IconLoader.getIcon("/icons/viz.png", JavaVisualizerManager.class),
 				null);
 		content.setCloseable(false);
